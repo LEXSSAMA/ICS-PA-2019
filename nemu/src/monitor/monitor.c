@@ -34,6 +34,10 @@ static inline long load_img() {
   long size;
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
+	/*声明外部文件的全局变量,
+	 * isa_default_img[],isa_default_img_size
+	 * 被定义在isa/$ISA/init.c
+	 */
     extern uint8_t isa_default_img[];
     extern long isa_default_img_size;
     size = isa_default_img_size;
@@ -64,6 +68,8 @@ static inline long load_img() {
 
 static inline void parse_args(int argc, char *argv[]) {
   int o;
+/*argc表示参数的个数，argv是一个数组里面装的是调用main函数的时候传递给参数
+"-bl:d:a:"这里第一个字符设置为-表示当传入参数中不是b,l,d,a的时候会return1,这里传入参数-b后面可以不加参数,其他的-l,-d,-a都需要必须加参数,原因是l,d,a后面都有冒号,如果是c::两个冒号则表示-c后面可以加参数可以不加参数*/
   while ( (o = getopt(argc, argv, "-bl:d:a:")) != -1) {
     switch (o) {
       case 'b': is_batch_mode = true; break;
@@ -86,6 +92,7 @@ int init_monitor(int argc, char *argv[]) {
   /* Parse arguments. */
   parse_args(argc, argv);
 
+  /*没找到init_log的源码先放一放*/
   /* Open the log file. */
   init_log(log_file);
 
