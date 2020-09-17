@@ -1,6 +1,10 @@
 #include "nemu.h"
 
+//X86是小端模式:高字节保存在内存的高地址中
 const uint8_t isa_default_img []  = {
+/* Opcode		Instruction		Description
+ * 8b /r		MOV r32,r/m32	Move r/m32(register/memory 32bit) to 32 bit register
+ * */
   0xb8, 0x34, 0x12, 0x00, 0x00,        // 100000:  movl  $0x1234,%eax
   0xb9, 0x27, 0x00, 0x10, 0x00,        // 100005:  movl  $0x100027,%ecx
   0x89, 0x01,                          // 10000a:  movl  %eax,(%ecx)
