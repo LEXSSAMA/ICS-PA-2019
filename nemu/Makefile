@@ -1,11 +1,18 @@
 NAME = nemu
-
+#如果$(MAKECMDGOALS)和clean）不相等则执行ifneq ...endif内的语句
+#$MAKECMDGOALS是一个特殊参数:这个参数存放你在命令行指定的目标列表,如果什么都没指定则为空
 ifneq ($(MAKECMDGOALS),clean) # ignore check for make clean
+# ?=用来设置变量，当没有设置ISA值或者没有ISA这个变量的时候
 ISA ?= x86
+#相当于执行一条shell命令
 ISAS = $(shell ls src/isa/)
+#打印信息到标准输出
 $(info Building $(ISA)-$(NAME))
-
+#$(filter pattern…,text):
+#Returns all whitespace-separated words in text that
+#do match any of the pattern words, removing any words that do not match. 
 ifeq ($(filter $(ISAS), $(ISA)), ) # ISA must be valid
+#产生致命错误，并提示Invalid ISA. Supported: $(ISAS)给用户
 $(error Invalid ISA. Supported: $(ISAS))
 endif
 endif
@@ -13,6 +20,7 @@ endif
 INC_DIR += ./include ./src/isa/$(ISA)/include
 BUILD_DIR ?= ./build
 
+#如果SHARE的值不为空就为true
 ifdef SHARE
 SO = -so
 SO_CFLAGS = -fPIC -D_SHARE=1

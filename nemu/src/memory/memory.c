@@ -1,6 +1,7 @@
 #include "nemu.h"
 #include "device/map.h"
 
+//猜测:这里是模拟器向物理主机申请128MB内存进行模拟操作
 uint8_t pmem[PMEM_SIZE] PG_ALIGN = {};
 
 static IOMap pmem_map = {

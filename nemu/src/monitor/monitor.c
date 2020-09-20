@@ -41,26 +41,39 @@ static inline long load_img() {
     extern uint8_t isa_default_img[];
     extern long isa_default_img_size;
     size = isa_default_img_size;
+	/*void *memcpy(void *dest, const void *src, size_t n)
+      copies n characters from memory area src to memory area dest.
+      把isa_default_img数组中的机器码读入内存guest_to_host(IMAGE_START),
+      也就是pmem+0x100000中*/
     memcpy(guest_to_host(IMAGE_START), isa_default_img, size);
   }
   else {
     int ret;
-
+    /*FILE *fopen(const char *filename, const char *mode)
+      opens the filename pointed to, by filename using the given mode.
+      filename − This is the C string containing the name of the file to be opened
+      mode − This is the C string containing a file access mode. 
+      r:代表read,b代表二进制,r加上b表示已二进制的形式读*/
     FILE *fp = fopen(img_file, "rb");
-    Assert(fp, "Can not open '%s'", img_file);
+i    /*如果fp==NULL,Assert就会报错并终止程序*/ Assert(fp, "Can not open '%s'", img_file);
 
     Log("The image is %s", img_file);
-
+	/*设置文件流的(写和读)开始位置,这里表示设置文件fp开始写和读的位置是seek_end+0(End of file + offset)*/
     fseek(fp, 0, SEEK_END);
+	/* long int ftell(FILE *stream) returns the current file position of the given stream.
+	返回文件位置指针相对与文件首的偏移字节数(猜测：可以看位文件光标所在的位置)*/
     size = ftell(fp);
-
+	/*SEEK_SET(Beginning of file*/
     fseek(fp, 0, SEEK_SET);
+	/*将fp文件里的1个大小为size的内容读入内存guest_to_host(IMAGE_START)的位置 成功读取的话就返回一个size_t 对象，数值等于我们想要读取size大小文件的个数(这里是等于1),如果不等于1,说明出现了问题*/
     ret = fread(guest_to_host(IMAGE_START), size, 1, fp);
+	/*如果ret==1不等于true的话抛出错误，程序终止*/
     assert(ret == 1);
-
+    /* int fclose(FILE *stream) closes the stream. All buffers are flushed.*/
     fclose(fp);
 
     // mainargs
+   /*将mainargs指针指向内存的内容copy到guest_to_host(0)指针指向的内存*/
     strcpy(guest_to_host(0), mainargs);
   }
   return size;
@@ -92,7 +105,6 @@ int init_monitor(int argc, char *argv[]) {
   /* Parse arguments. */
   parse_args(argc, argv);
 
-  /*没找到init_log的源码先放一放*/
   /* Open the log file. */
   init_log(log_file);
 
