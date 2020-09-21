@@ -23,6 +23,8 @@ BUILD_DIR ?= ./build
 #如果SHARE的值不为空就为true
 ifdef SHARE
 SO = -so
+# -D_SHARE:-Dmacro=defn  相当于 C 语言中的 #define macro=defn
+# -fPIC涉及到动态链接(先放一放)
 SO_CFLAGS = -fPIC -D_SHARE=1
 SO_LDLAGS = -shared -fPIC
 endif
@@ -30,35 +32,54 @@ endif
 OBJ_DIR ?= $(BUILD_DIR)/obj-$(ISA)$(SO)
 BINARY ?= $(BUILD_DIR)/$(ISA)-$(NAME)$(SO)
 
+#类似C中的#include
 include Makefile.git
-
+#设置默认目标，如果没有在命令行指定目标则使用默认目标
 .DEFAULT_GOAL = app
 
 # Compilation flags
 CC = gcc
 LD = gcc
+#$(addprefix,prefix,names...):The value of prefix is prepended to the front of 
+# each individual name and the resulting larger names are concatenated with single
+# spaces between them 
 INCLUDES  = $(addprefix -I, $(INC_DIR))
+# -O2:允许编译器对代码进行优化,级别为2
+# -MMD:生成文件关联信息但是忽略由#include<file>造成的依赖关系并且写入filename.d文件中，可以去看看-M
+# -Wall:开启所有警告信息
+# -Werror: every warning is treated as an error
+# -ggdb3:(搞不懂是什么意思)produces extra debugging information, for example: including macro definitions.
+# -D__ISA__:-Dmacro=defn  相当于 C 语言中的 #define macro=defn
+# -fomit-frame-pointer :(这个参数有关于栈指针)看这篇文章:https://stackoverflow.com/questions/14666665/trying-to-understand-gcc-option-fomit-frame-pointer
 CFLAGS   += -O2 -MMD -Wall -Werror -ggdb3 $(INCLUDES) -D__ISA__=$(ISA) -fomit-frame-pointer
 
 QEMU_DIFF_PATH = $(NEMU_HOME)/tools/qemu-diff
 QEMU_SO = $(QEMU_DIFF_PATH)/build/$(ISA)-qemu-so
 
+#执行make指令$(MAkE)是特殊变量 -C用来指定目录
 $(QEMU_SO):
 	$(MAKE) -C $(QEMU_DIFF_PATH)
 
 # Files to be compiled
+# -v 表示不匹配“isa"
 SRCS = $(shell find src/ -name "*.c" | grep -v "isa")
 SRCS += $(shell find src/isa/$(ISA) -name "*.c")
+#$(var:a=b)，是将 var 变量中每一个单词后面的 a 替换为 b
 OBJS = $(SRCS:src/%.c=$(OBJ_DIR)/%.o)
 
 # Compilation patterns
+#@表示不显示执行的指令
+#$<代表第一个依赖项
+#$(dir NAMES...):取出每个文件名的目录部分
 $(OBJ_DIR)/%.o: src/%.c
 	@echo + CC $<
 	@mkdir -p $(dir $@)
 	@$(CC) $(CFLAGS) $(SO_CFLAGS) -c -o $@ $<
 
 
+#看这篇文章https://blog.csdn.net/xiaozhi_su/article/details/4202779
 # Depencies
+#将OBJS中的文件后缀为.o的文件然后把后缀改为.d
 -include $(OBJS:.o=.d)
 
 # Some convenient rules
