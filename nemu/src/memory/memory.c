@@ -10,6 +10,9 @@ static IOMap pmem_map = {
   .callback = NULL
 };
 
+//用来记录物理内存的起始位置
+//X86架构下物理内存的起始也就是0传入的base=0;但是在其他架构下物理内存的其实位置不同传入base也就不同
+
 void register_pmem(paddr_t base) {
   pmem_map.low = base;
   pmem_map.high = base + PMEM_SIZE - 1;

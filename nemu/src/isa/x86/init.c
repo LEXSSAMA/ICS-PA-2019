@@ -29,7 +29,7 @@ void init_isa(void) {
 
   /* Setup physical memory address space. */
   register_pmem(0);
-
+	//用来初始化寄存器
   /* Initialize this virtual computer system. */
   restart();
 }

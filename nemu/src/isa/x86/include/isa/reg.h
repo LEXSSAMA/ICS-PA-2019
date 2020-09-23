@@ -15,21 +15,32 @@ enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
  * cpu.gpr[1]._8[1], we will get the 'ch' register. Hint: Use `union'.
  * For more details about the register encoding scheme, see i386 manual.
  */
-
 typedef struct {
-  struct {
-    uint32_t _32;
-    uint16_t _16;
-    uint8_t _8[2];
-  } gpr[8];
-
+  // struct {
+  //   uint32_t _32;
+  //   uint16_t _16;
+  //   uint8_t _8[2];
+  // } gpr[8];
+  union{
   /* Do NOT change the order of the GPRs' definitions. */
+    union {
+      uint32_t _32;
+      uint16_t _16;
+      uint8_t _8[2];
+    } gpr[8];
 
   /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
    * in PA2 able to directly access these registers.
    */
-  rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
-
+  //rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
+  //为什么要把rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;用匿名结构体包裹起来呢?
+  //因为为了匹配上gpr[8]的内存，如果不用struct包裹的话，eax, ecx, edx, ebx, esp, ebp, esi, edi就如一个变量一样只会指向gpr[0]
+  // 这里的顺序不能打乱,分别对应gpr[1~8]
+    struct
+    {
+      rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
+    };
+  };
   vaddr_t pc;
 
 } CPU_state;
