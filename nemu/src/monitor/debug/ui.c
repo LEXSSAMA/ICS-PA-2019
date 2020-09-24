@@ -4,15 +4,16 @@
 #include "nemu.h"
 
 #include <stdlib.h>
+#include<math.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
 void cpu_exec(uint64_t);
+void isa_reg_display();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
   static char *line_read = NULL;
-
   if (line_read) {
     free(line_read);
     line_read = NULL;
@@ -35,7 +36,77 @@ static int cmd_c(char *args) {
 static int cmd_q(char *args) {
   return -1;
 }
-
+static int cmd_si(char *args)
+{
+  char *arg = strtok(NULL," ");
+  if(args==NULL)
+  {
+    cpu_exec(1);
+  }
+  else
+  {
+    int count =0;
+    int len = strlen(arg);
+    for(int i=0;i<len;++i)
+    {
+      count = count*10+(arg[i]-'0');
+    }
+    cpu_exec(count);
+  }
+  return 0;
+}
+static int cmd_info(char *args)
+{
+  isa_reg_display(args);
+  return 0;
+}
+static int cmd_p(char* args)
+{
+  return 0;
+}
+static int cmd_w(char *args)
+{
+  return 0;
+}
+static int cmd_d(char *args)
+{
+//  unsigned int N = 0;
+//  unsigned int address = 0;
+//  unsigned int count =0;
+//  char* arg = strtok(NULL," ");
+//  for(int i =0;i<strlen(arg);i++)
+//  {
+//    N = N+arg[i]*10;
+//  }
+//  arg = strtok(NULL," ");
+//  if(strlen(arg)>27||arg[0]!='0'||arg[1]!='x')
+//  {
+//    printf("\033[1;31m please write correct address ! \033[0m;");
+//    return 0;
+//  }
+//  for(int i=strlen(arg)-1;i>1;++i)  
+//  {
+//    if(arg[i]=='1')
+//    {
+//      address += pow(2,count);
+//      count++;
+//    }
+//    else if(arg[i]=='0')
+//    {
+//      continue;
+//    }
+//    else
+//    {
+//      printf("\033[1;31m please write correct address ! \033[0m;");
+//      return 0;
+//    }
+//  }
+	return 0;
+}
+static int cmd_x(char *args)
+{
+  return 0;
+}
 static int cmd_help(char *args);
 
 static struct {
@@ -46,7 +117,12 @@ static struct {
   { "help", "Display informations about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
+  { "si","make program run [N] step, default is 1",cmd_si},
+  { "info","info [SUBCMD] , info r : printf register status, info w : printf monitor pointer status",cmd_info},
+  { "p","p [EXPR] : find the value of expression EXPR , for example : p $eax+1",cmd_p},
+  { "x","x [N] [EXPR] : find the value of expression EXPR and use the result as the starting memory Address, output consecutive [N] 4 bytes in hexadecimal form. For example : x 10 0x100000",cmd_x},
+  { "w","w [EXPR] : Stop run program When value of the EXPR change",cmd_w},
+  { "d","d [N] : delete number [N] monitor pointer",cmd_d}
   /* TODO: Add more commands */
 
 };
@@ -81,10 +157,9 @@ void ui_mainloop(int is_batch_mode) {
     cmd_c(NULL);
     return;
   }
-
+  //开始解析传入的命令
   for (char *str; (str = rl_gets()) != NULL; ) {
     char *str_end = str + strlen(str);
-
     /* extract the first token as the command */
     char *cmd = strtok(str, " ");
     if (cmd == NULL) { continue; }
@@ -113,3 +188,5 @@ void ui_mainloop(int is_batch_mode) {
     if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
   }
 }
+
+

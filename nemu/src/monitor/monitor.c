@@ -55,7 +55,7 @@ static inline long load_img() {
       mode − This is the C string containing a file access mode. 
       r:代表read,b代表二进制,r加上b表示已二进制的形式读*/
     FILE *fp = fopen(img_file, "rb");
-i    /*如果fp==NULL,Assert就会报错并终止程序*/ Assert(fp, "Can not open '%s'", img_file);
+    /*如果fp==NULL,Assert就会报错并终止程序*/ Assert(fp, "Can not open '%s'", img_file);
 
     Log("The image is %s", img_file);
 	/*设置文件流的(写和读)开始位置,这里表示设置文件fp开始写和读的位置是seek_end+0(End of file + offset)*/
