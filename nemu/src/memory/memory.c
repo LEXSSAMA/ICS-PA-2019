@@ -23,10 +23,14 @@ void register_pmem(paddr_t base) {
 IOMap* fetch_mmio_map(paddr_t addr);
 
 /* Memory accessing interfaces */
-
+/*len的取值可以取1～4,代表读取1,2,3,4个字节的内存信息*/
 uint32_t paddr_read(paddr_t addr, int len) {
+  //map_inside(),true:代表传入的地址在pmen~pmen+128Mb范围内
   if (map_inside(&pmem_map, addr)) {
     uint32_t offset = addr - pmem_map.low;
+    //~0u(32bit):11111111 11111111 11111111 11111111
+    //4-1=3(当len=1)
+    //011<<3 = 3*2*2*2 = 24 
     return *(uint32_t *)(pmem + offset) & (~0u >> ((4 - len) << 3));
   }
   else {

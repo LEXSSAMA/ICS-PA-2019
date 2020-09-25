@@ -4,7 +4,6 @@
 #include "nemu.h"
 
 #include <stdlib.h>
-#include<math.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -70,38 +69,66 @@ static int cmd_w(char *args)
 }
 static int cmd_d(char *args)
 {
-//  unsigned int N = 0;
-//  unsigned int address = 0;
-//  unsigned int count =0;
-//  char* arg = strtok(NULL," ");
-//  for(int i =0;i<strlen(arg);i++)
-//  {
-//    N = N+arg[i]*10;
-//  }
-//  arg = strtok(NULL," ");
-//  if(strlen(arg)>27||arg[0]!='0'||arg[1]!='x')
-//  {
-//    printf("\033[1;31m please write correct address ! \033[0m;");
-//    return 0;
-//  }
-//  for(int i=strlen(arg)-1;i>1;++i)  
-//  {
-//    if(arg[i]=='1')
-//    {
-//      address += pow(2,count);
-//      count++;
-//    }
-//    else if(arg[i]=='0')
-//    {
-//      continue;
-//    }
-//    else
-//    {
-//      printf("\033[1;31m please write correct address ! \033[0m;");
-//      return 0;
-//    }
-//  }
-	return 0;
+  unsigned int N = 0;
+  unsigned int address = 0;
+  unsigned int count =0;
+  char* arg = strtok(NULL," ");
+  for(int i =0;i<strlen(arg);i++)
+  {
+    N=N*10+(arg[i]-'0');
+  }
+  arg = strtok(NULL," ");
+  if(strlen(arg)>10||arg[0]!='0'||arg[1]!='x')
+  {
+    printf("\033[1;31m please write correct address ! \033[0m\n");
+    return 0;
+  }
+  for(int i=strlen(arg)-1;i>1;--i)  
+  {
+    if(arg[i]<=102&&arg[i]>=97)
+    {
+      int num = arg[i]-'a'+10;
+      int j=0;
+      while(j<count)
+      {
+        num*=16;
+        j++;
+      }
+      address+=num;
+    }
+    else if(arg[i]<=57&&arg[i]>=48)
+    {
+      int num = arg[i]-'0';
+      int j=0;
+      while(j<count)
+      {
+        num*=16;
+        j++;
+      }
+      address+=num;
+    }
+    else
+    {
+       printf("\033[1;31m please write the correct address ! \033[0m\n");
+       return 0;
+    }
+    count++;
+  }
+    if(address>=128*1024*1024)
+    {
+        printf("\033[1;31m Memory address Overflow , Please write correct address!\033[0m\n");
+       return 0;
+    }
+    for(int i=0;i<N;++i)
+    {
+      for(int j=0;j<4;++j)
+      {
+        printf("%x",pmem[address+j]);
+      }
+      address+=4;
+      printf("\n");
+    }
+  return 0;
 }
 static int cmd_x(char *args)
 {
@@ -137,13 +164,13 @@ static int cmd_help(char *args) {
   if (arg == NULL) {
     /* no argument given */
     for (i = 0; i < NR_CMD; i ++) {
-      printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+      printf("\033[1;32m%s - %s\033[0m\n", cmd_table[i].name, cmd_table[i].description);
     }
   }
   else {
     for (i = 0; i < NR_CMD; i ++) {
       if (strcmp(arg, cmd_table[i].name) == 0) {
-        printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+        printf("\033[1;32m%s - %s\033[0m\n", cmd_table[i].name, cmd_table[i].description);
         return 0;
       }
     }
