@@ -21,9 +21,10 @@ typedef struct {
 #define EXW(ex, w)         {NULL, concat(exec_, ex), w}
 #define EX(ex)             EXW(ex, 0)
 #define EMPTY              EX(inv)
-
+//从*pc开始读取len个字节的内存信息(可以看成取代码去执行)
 static inline uint32_t instr_fetch(vaddr_t *pc, int len) {
   uint32_t instr = vaddr_read(*pc, len);
+//如果定义了DEBUG则将内存信息以"%02x "的格式写入log_bytebuf中 
 #ifdef DEBUG
   uint8_t *p_instr = (void *)&instr;
   int i;

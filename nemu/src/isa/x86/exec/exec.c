@@ -195,6 +195,7 @@ static make_EHelper(2byte_esc) {
 void isa_exec(vaddr_t *pc) {
   uint32_t opcode = instr_fetch(pc, 1);
   decinfo.opcode = opcode;
+  //这里暂时传入的数值opcode_table[opcode].width=0;
   set_width(opcode_table[opcode].width);
   idex(pc, &opcode_table[opcode]);
 }

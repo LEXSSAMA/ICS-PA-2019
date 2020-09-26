@@ -69,6 +69,10 @@ static int cmd_w(char *args)
 }
 static int cmd_d(char *args)
 {
+  return 0;
+}
+static int cmd_x(char *args)
+{
   unsigned int N = 0;
   unsigned int address = 0;
   unsigned int count =0;
@@ -114,24 +118,33 @@ static int cmd_d(char *args)
     }
     count++;
   }
-    if(address>=128*1024*1024)
-    {
-        printf("\033[1;31m Memory address Overflow , Please write correct address!\033[0m\n");
-       return 0;
-    }
+//    if(address>=128*1024*1024)
+//    {
+//        printf("\033[1;31m Memory address Overflow , Please write correct address!\033[0m\n");
+//       return 0;
+//    }
+    address=address%(128*1024*1024);
+    printf("\033[1;32mAddress       Big-Endian     Little-Endian\033[0m\n");
     for(int i=0;i<N;++i)
     {
+      char temp[80];
+      snprintf(temp,20,"0x%08x%s%*s",address,":",3,"");
+      for(int j=3;j>=0;--j)
+      {
+       char buff[80];
+       snprintf(buff,20,"%02x ",pmem[address+j]);
+       strcat(temp,buff);
+      }
+      strcat(temp,"   ");
       for(int j=0;j<4;++j)
       {
-        printf("%x",pmem[address+j]);
+       char buff[80];
+       snprintf(buff,20,"%02x ",pmem[address+j]);
+       strcat(temp,buff);
       }
+      printf("\033[1;32m%s\033[0m\n",temp);
       address+=4;
-      printf("\n");
     }
-  return 0;
-}
-static int cmd_x(char *args)
-{
   return 0;
 }
 static int cmd_help(char *args);
@@ -215,5 +228,4 @@ void ui_mainloop(int is_batch_mode) {
     if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
   }
 }
-
 
