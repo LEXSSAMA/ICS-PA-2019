@@ -1,4 +1,4 @@
-#include "nemu.h"
+i#include "nemu.h"
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -7,10 +7,10 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ
-
+  TK_NOTYPE = 256,TK_Plus , TK_EQ , TK_Subtraction , TK_Asterisk
+  ,TK_Diagonal , TK_LParentheses , TK_Rparentheses
+  ,TK_Decimal
   /* TODO: Add more token types */
-
 };
 
 static struct rule {
@@ -27,8 +27,14 @@ static struct rule {
   原因是即在正则表达式里用作转义字符，同时也在string（char*）字符里用作转义
   所以我们要创建一个\+正则表达式的时候，用一个char*字符串或者string字符串表示时应该
   写为\\+ */
-  {"\\+", '+'},         // plus
-  {"==", TK_EQ}         // equal
+  {"\\+", TK_Plus},         // plus
+  {"==", TK_EQ},         // equal
+  {"-",TK_Subtraction},
+  {"\\*",TK_Asterisk},
+  {"/",TK_Diagonal},
+  {"\\(",TK_LParentheses},
+  {"\\)",TK_Rparentheses},
+  {"[0-9]+",TK_Decimal}
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -84,13 +90,22 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          default: TODO();
+          case TK_NOTYPE :
+              break;
+          case TK_Decimal :
+          tokens[position].type=rules[i].token_type;
+          if(substr_len>=32){
+            Assert(0,"Decimal Number Overflow !");
+          }
+            strncpy(tokens[position].str,substr_start,substr_len);
+            tokens[position].str[substr_len] ='\0';
+              break;
+          default: 
+          tokens[position].type = rules[i].token_type;
         }
-
         break;
       }
     }
-
     if (i == NR_REGEX) {
       printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
       return false;
@@ -98,6 +113,106 @@ static bool make_token(char *e) {
   }
 
   return true;
+}
+
+bool check_parentheses(int p,int q)
+{
+  bool match =false;
+  if(tokens[p].type==TK_LParentheses&&tokens[q].type==TK_Rparentheses)
+    match=true;
+  int layer = 0;
+  for(int i=p;i<=q;++i)
+  {
+    if(tokens[i].type==TK_LParentheses)
+      layer++;
+    else if(tokens[i].type==TK_Rparentheses)
+    {
+      if(--layer<0)
+      Assert(0,"Bad expression!");
+    }
+  }
+  if(layer!=0)
+  Assert(0,"Bad expression !");
+  return match;
+}
+
+uint32_t findMainOp(int p,int q)
+{
+    uint32_t op = p;
+    bool LparenthesesOcur =false;
+    for(int i=p,i<=q;++i)
+    {
+      if(LparenthesesOcur==false){
+        switch(tokens[i].type)
+        {
+          case TK_Plus:
+          case TK_Diagonal:
+            op=i;
+            break;
+          case TK_Asterisk:
+            if(tokens[op].type!=TK_Plus&&tokens[op].type!=TK_Diagonal)
+              op=i;
+            break;
+          case TK_LParentheses:
+            LparenthesesOcur=true;
+            break;
+          case TK_Rparentheses:
+            Assert(0,"Bad expression!");
+            break;
+        }
+      }
+      else
+      {
+        if(tokens[i].type!=TK_Rparentheses)
+        continue;
+        else
+        LparenthesesOcur=false;
+      }
+    }
+    if(LparenthesesOcur==true)
+      Assert(0,"Bad expression !");
+    return op;
+}
+uint32_t eval(int p,int q)
+{
+  if(p>q)
+  {
+    Assert(0,"Bad expression!");
+  }
+  else if(p==q)
+  {
+    if(tokens[p].type!=TK_Decimal)
+    Assert(0,"Bad expression!");
+    uint32_t total = 0;
+    uint32_t i=0;
+    while(tokens[p].str[i]!="\0")
+    {
+      total=total*10+(tokens[p].str[i]-'0');
+    }
+    return total;
+  }
+  else if(check_parentheses(p,q)==true)
+  {
+    return eval(p+1,q-1);
+  }
+  else
+  {
+    uint32_t op = findMainOp(p,q);
+    uint32_t val1= eval(p,op-1);
+    uint32_t val2 = eval(op+1,q);
+    switch (tokens[op].type)
+    {
+      case TK_Plus:
+        return val1+val2;
+      case TK_Subtraction:
+        return val1-val2;
+      case TK_Asterisk:
+        return val1*val2;
+      case TK_Diagonal:
+        return val1/val2;
+      default: Assert(0,"Bad expression !");
+    }
+  }
 }
 
 uint32_t expr(char *e, bool *success) {
@@ -111,3 +226,4 @@ uint32_t expr(char *e, bool *success) {
 
   return 0;
 }
+

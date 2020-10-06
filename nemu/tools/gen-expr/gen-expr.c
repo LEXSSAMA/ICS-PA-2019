@@ -5,13 +5,82 @@
 #include <assert.h>
 #include <string.h>
 
-// this should be enough
+#define NR_TOKENS 32
+//this should be enough
 static char buf[65536];
-static inline void gen_rand_expr() {
-  buf[0] = '\0';
+static int strSub =0;
+static int nr_tokens = 0;
+static inline int choose(int num)
+{
+  return (rand()/7)%num;
+}
+static inline void gen_num()
+{
+  uint32_t num =rand()%1000000;
+  while(num==0&&strSub!=0&&buf[strSub-1]=='/')
+    num = rand()%1000000;
+  char buffer[40];
+  snprintf(buffer,sizeof(buffer),"%d",num);
+  int len = strlen(buffer);
+  strcpy(&buf[strSub],buffer);
+  strSub+=len;
+  nr_tokens++;
+  return ;
+}
+static inline void gen(char c)
+{
+  if(c=='(')
+  buf[strSub] = '(';
+  if(c==')')
+  buf[strSub] = ')';
+  strSub++;
+  nr_tokens++;
+  return ;
+}
+static inline void gen_rand_op()
+{
+  switch (choose(4))
+  {
+    case 0 : buf[strSub]='+';break;
+    case 1 : buf[strSub]='-';break;
+    case 2 : buf[strSub]='*';break;
+    case 3 : buf[strSub]='/';break;
+  }
+  strSub++;
+  nr_tokens++;
+  return ;
+}
+static inline void gen_rand_expr()
+{
+  switch (choose(3))
+  {
+    case 0 :
+    if(nr_tokens+1>=NR_TOKENS)
+      break;
+    gen_num();break;
+    case 1 : 
+    if(nr_tokens+3>=NR_TOKENS)
+      break;
+    gen('(');gen_rand_expr();gen(')');break;
+    default: 
+    if(nr_tokens+3>=NR_TOKENS)
+      break;
+    gen_rand_expr();gen_rand_op();gen_rand_expr();break;
+  }
+  //随机插入空格
+  switch (choose(10))
+  {
+    case 2 :
+    case 4 :
+    case 5 :
+    if(nr_tokens+1>=NR_TOKENS)
+      break;
+    buf[strSub]=' ';strSub++;nr_tokens++;break;
+    default: break;
+  }
 }
 
-static char code_buf[65536];
+static char code_buf[70000];
 static char *code_format =
 "#include <stdio.h>\n"
 "int main() { "
@@ -29,6 +98,9 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
+    strSub=0;
+    nr_tokens=0;
+    memset(buf,0,sizeof(buf));
     gen_rand_expr();
 
     sprintf(code_buf, code_format, buf);
@@ -52,3 +124,4 @@ int main(int argc, char *argv[]) {
   }
   return 0;
 }
+
