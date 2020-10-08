@@ -1,5 +1,4 @@
-i#include "nemu.h"
-
+#include "nemu.h" 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
@@ -8,7 +7,7 @@ i#include "nemu.h"
 
 enum {
   TK_NOTYPE = 256,TK_Plus , TK_EQ , TK_Subtraction , TK_Asterisk
-  ,TK_Diagonal , TK_LParentheses , TK_Rparentheses
+  ,TK_Diagonal , TK_LParentheses , TK_RParentheses
   ,TK_Decimal
   /* TODO: Add more token types */
 };
@@ -33,7 +32,7 @@ static struct rule {
   {"\\*",TK_Asterisk},
   {"/",TK_Diagonal},
   {"\\(",TK_LParentheses},
-  {"\\)",TK_Rparentheses},
+  {"\\)",TK_RParentheses},
   {"[0-9]+",TK_Decimal}
 };
 
@@ -79,7 +78,6 @@ static bool make_token(char *e) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
-
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
         position += substr_len;
@@ -93,15 +91,17 @@ static bool make_token(char *e) {
           case TK_NOTYPE :
               break;
           case TK_Decimal :
-          tokens[position].type=rules[i].token_type;
+          tokens[nr_token].type=rules[i].token_type;
           if(substr_len>=32){
             Assert(0,"Decimal Number Overflow !");
           }
-            strncpy(tokens[position].str,substr_start,substr_len);
-            tokens[position].str[substr_len] ='\0';
+            strncpy(tokens[nr_token].str,substr_start,substr_len);
+            tokens[nr_token].str[substr_len] ='\0';
+            nr_token++;
               break;
           default: 
-          tokens[position].type = rules[i].token_type;
+          tokens[nr_token].type = rules[i].token_type;
+           nr_token++;
         }
         break;
       }
@@ -118,14 +118,14 @@ static bool make_token(char *e) {
 bool check_parentheses(int p,int q)
 {
   bool match =false;
-  if(tokens[p].type==TK_LParentheses&&tokens[q].type==TK_Rparentheses)
+  if(tokens[p].type==TK_LParentheses&&tokens[q].type==TK_RParentheses)
     match=true;
   int layer = 0;
   for(int i=p;i<=q;++i)
   {
     if(tokens[i].type==TK_LParentheses)
       layer++;
-    else if(tokens[i].type==TK_Rparentheses)
+    else if(tokens[i].type==TK_RParentheses)
     {
       if(--layer<0)
       Assert(0,"Bad expression!");
@@ -139,37 +139,38 @@ bool check_parentheses(int p,int q)
 uint32_t findMainOp(int p,int q)
 {
     uint32_t op = p;
-    bool LparenthesesOcur =false;
-    for(int i=p,i<=q;++i)
+    int layer = 0;
+    for(int i=p;i<=q;++i)
     {
-      if(LparenthesesOcur==false){
+      if(layer==0){
         switch(tokens[i].type)
         {
           case TK_Plus:
-          case TK_Diagonal:
+          case TK_Subtraction:
             op=i;
             break;
+          case TK_Diagonal:
           case TK_Asterisk:
-            if(tokens[op].type!=TK_Plus&&tokens[op].type!=TK_Diagonal)
+            if(tokens[op].type!=TK_Plus&&tokens[op].type!=TK_Subtraction)
               op=i;
             break;
           case TK_LParentheses:
-            LparenthesesOcur=true;
+             layer++;
             break;
-          case TK_Rparentheses:
+          case TK_RParentheses:
             Assert(0,"Bad expression!");
             break;
         }
       }
       else
       {
-        if(tokens[i].type!=TK_Rparentheses)
-        continue;
-        else
-        LparenthesesOcur=false;
+        if(tokens[i].type==TK_RParentheses)
+        layer--;
+        else if(tokens[i].type==TK_LParentheses)
+        layer++;
       }
     }
-    if(LparenthesesOcur==true)
+    if(layer!=0)
       Assert(0,"Bad expression !");
     return op;
 }
@@ -177,27 +178,29 @@ uint32_t eval(int p,int q)
 {
   if(p>q)
   {
-    Assert(0,"Bad expression!");
+    Assert(0,"p>q!");
   }
   else if(p==q)
   {
     if(tokens[p].type!=TK_Decimal)
-    Assert(0,"Bad expression!");
+    Assert(0,"tokens[p].type!=TK_Decimal");
     uint32_t total = 0;
     uint32_t i=0;
-    while(tokens[p].str[i]!="\0")
+    while(tokens[p].str[i]!='\0')
     {
-      total=total*10+(tokens[p].str[i]-'0');
+      total=total*10+(tokens[p].str[i++]-'0');
     }
     return total;
   }
   else if(check_parentheses(p,q)==true)
   {
+    printf("check_parenthese success !\n");
     return eval(p+1,q-1);
   }
   else
   {
     uint32_t op = findMainOp(p,q);
+    printf("p: %d,OP: %d,q: %d\n",p,op,q);
     uint32_t val1= eval(p,op-1);
     uint32_t val2 = eval(op+1,q);
     switch (tokens[op].type)
@@ -216,14 +219,23 @@ uint32_t eval(int p,int q)
 }
 
 uint32_t expr(char *e, bool *success) {
+
   if (!make_token(e)) {
     *success = false;
     return 0;
   }
 
-  /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+   printf("%s\n",e);
+  // for(int i=0;i<nr_token;++i)
+  // {
+    // printf("%d: %s %d \n",i,tokens[i].str,tokens[i].type);
+  // }
 
-  return 0;
+  /* TODO: Insert codes to evaluate the expression. */
+  //TODO();
+  int count = eval(0,nr_token-1);
+
+  return count;
 }
+
 
