@@ -6,9 +6,8 @@ void ui_mainloop(int);
 
 uint32_t expr(char *e, bool *success);
 
-int main(int argc, char *argv[]) {
-  /* Initialize the monitor. */
-  int is_batch_mode = init_monitor(argc, argv);
+void testExpr()
+{
    FILE* fp = fopen("../tools/gen-expr/input","r");
    uint32_t num =0;
    bool success = false;
@@ -25,10 +24,16 @@ int main(int argc, char *argv[]) {
     printf("%s=%u\n",str,count);
   }
     fclose(fp);
+    return ;
+}
+
+int main(int argc, char *argv[]) {
+  /* Initialize the monitor. */
+  int is_batch_mode = init_monitor(argc, argv);
+  testExpr();
   /* Receive commands from user. */
   ui_mainloop(is_batch_mode);
 
   return 0;
 }
-
 

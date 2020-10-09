@@ -16,9 +16,7 @@ static inline int choose(int num)
 }
 static inline void gen_num()
 {
-  uint32_t num =rand()%1000000;
-  while(num==0&&strSub!=0&&buf[strSub-1]=='/')
-    num = rand()%1000000;
+  uint32_t num =rand()%1000;
   char buffer[40];
   snprintf(buffer,sizeof(buffer),"%d",num);
   int len = strlen(buffer);
@@ -85,7 +83,7 @@ static char *code_format =
 "#include <stdio.h>\n"
 "int main() { "
 "  unsigned result = %s; "
-"  printf(\"%%u\", result); "
+"  printf(\"%%u \", result); "
 "  return 0; "
 "}";
 
@@ -109,10 +107,9 @@ int main(int argc, char *argv[]) {
     assert(fp != NULL);
     fputs(code_buf, fp);
     fclose(fp);
-
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
-    if (ret != 0) continue;
-
+    int retValue = system("gcc /tmp/.code.c -o /tmp/.expr");
+    //printf("retValue = %d \n",retValue);
+    if (retValue != 0) continue;
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
 

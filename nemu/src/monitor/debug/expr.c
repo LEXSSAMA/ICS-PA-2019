@@ -62,7 +62,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[100] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -115,25 +115,46 @@ static bool make_token(char *e) {
   return true;
 }
 
-bool check_parentheses(int p,int q)
+/*Three status
+* -1 : Bad expression!
+*  0 : false, the whole expression is not surround pair of parentheses.
+*  1 : true , the whole expression is surround pair of parentheses .
+*/
+int check_parentheses(int p,int q)
 {
-  bool match =false;
-  if(tokens[p].type==TK_LParentheses&&tokens[q].type==TK_RParentheses)
-    match=true;
+  int result = 0;
   int layer = 0;
-  for(int i=p;i<=q;++i)
+  if(tokens[p].type==TK_LParentheses&&tokens[q].type==TK_RParentheses)
   {
-    if(tokens[i].type==TK_LParentheses)
-      layer++;
-    else if(tokens[i].type==TK_RParentheses)
+    result=1;
+    for(int i=p+1;i<=q-1;++i)
     {
-      if(--layer<0)
-      Assert(0,"Bad expression!");
+      if(layer<0)
+      {
+        result=0;
+      }
+      switch (tokens[i].type)
+      {
+        case TK_LParentheses : layer++; break;
+        case TK_RParentheses : layer--; break;
+      }
     }
   }
-  if(layer!=0)
-  Assert(0,"Bad expression !");
-  return match;
+  layer=0;
+  for(int i=p;i<=q;++i)
+  {
+    if(layer<0)
+    {
+      result=-1;
+      break;
+    }
+    switch (tokens[i].type)
+      {
+        case TK_LParentheses : layer++; break;
+        case TK_RParentheses : layer--; break;
+      }
+  }
+  return result;
 }
 
 uint32_t findMainOp(int p,int q)
@@ -192,15 +213,17 @@ uint32_t eval(int p,int q)
     }
     return total;
   }
-  else if(check_parentheses(p,q)==true)
+  int check = check_parentheses(p,q);
+  if(check!=0)
   {
-    printf("check_parenthese success !\n");
+    if(check==-1)
+    Assert(0,"Bad expression !\n");
     return eval(p+1,q-1);
   }
   else
   {
     uint32_t op = findMainOp(p,q);
-    printf("p: %d,OP: %d,q: %d\n",p,op,q);
+    //printf("p: %d,OP: %d,q: %d\n",p,op,q);
     uint32_t val1= eval(p,op-1);
     uint32_t val2 = eval(op+1,q);
     switch (tokens[op].type)
@@ -212,6 +235,8 @@ uint32_t eval(int p,int q)
       case TK_Asterisk:
         return val1*val2;
       case TK_Diagonal:
+        if(val2==0)
+        Assert(0,"Divide by 0 !\n");
         return val1/val2;
       default: Assert(0,"Bad expression !");
     }
@@ -225,7 +250,8 @@ uint32_t expr(char *e, bool *success) {
     return 0;
   }
 
-   printf("%s\n",e);
+  printf("%s\n",e);
+  //printf("nr_tokens=%d\n",nr_token);
   // for(int i=0;i<nr_token;++i)
   // {
     // printf("%d: %s %d \n",i,tokens[i].str,tokens[i].type);
@@ -234,8 +260,8 @@ uint32_t expr(char *e, bool *success) {
   /* TODO: Insert codes to evaluate the expression. */
   //TODO();
   int count = eval(0,nr_token-1);
+  //printf("count = %d\n",count);
 
   return count;
 }
-
 
