@@ -62,7 +62,8 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[100] __attribute__((used)) = {};
+#define NR_TOKENS 200
+static Token tokens[NR_TOKENS] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -73,6 +74,11 @@ static bool make_token(char *e) {
   nr_token = 0;
 
   while (e[position] != '\0') {
+    if(nr_token>=NR_TOKENS)
+    {
+        printf("\033[0;33mThe expression too long !\n\033[0m;");
+        return false;
+    }
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
@@ -91,17 +97,18 @@ static bool make_token(char *e) {
           case TK_NOTYPE :
               break;
           case TK_Decimal :
-          tokens[nr_token].type=rules[i].token_type;
-          if(substr_len>=32){
-            Assert(0,"Decimal Number Overflow !");
-          }
-            strncpy(tokens[nr_token].str,substr_start,substr_len);
-            tokens[nr_token].str[substr_len] ='\0';
-            nr_token++;
-              break;
+            tokens[nr_token].type=rules[i].token_type;
+            if(substr_len>=32){
+              printf("\033[0;33m Decimal Number Overflow !\n\033[0m;");
+              return false;
+            }
+              strncpy(tokens[nr_token].str,substr_start,substr_len);
+              tokens[nr_token].str[substr_len] ='\0';
+              nr_token++;
+                break;
           default: 
-          tokens[nr_token].type = rules[i].token_type;
-           nr_token++;
+            tokens[nr_token].type = rules[i].token_type;
+             nr_token++;
         }
         break;
       }
@@ -127,6 +134,7 @@ int check_parentheses(int p,int q)
   if(tokens[p].type==TK_LParentheses&&tokens[q].type==TK_RParentheses)
   {
     result=1;
+    //判读不包括左右边缘的括号内的表达式是否合法
     for(int i=p+1;i<=q-1;++i)
     {
       if(layer<0)
@@ -140,6 +148,7 @@ int check_parentheses(int p,int q)
       }
     }
   }
+  //判读包括左右边缘的括号内的表达式是否合法
   layer=0;
   for(int i=p;i<=q;++i)
   {
@@ -157,7 +166,7 @@ int check_parentheses(int p,int q)
   return result;
 }
 
-uint32_t findMainOp(int p,int q)
+uint32_t findMainOp(int p,int q,bool* success)
 {
     uint32_t op = p;
     int layer = 0;
@@ -179,7 +188,9 @@ uint32_t findMainOp(int p,int q)
              layer++;
             break;
           case TK_RParentheses:
-            Assert(0,"Bad expression!");
+            printf("Bad expression at [%d %d]\n",p,q);
+           *success = false;
+            return 0;
             break;
         }
       }
@@ -192,19 +203,28 @@ uint32_t findMainOp(int p,int q)
       }
     }
     if(layer!=0)
-      Assert(0,"Bad expression !");
+    {
+      printf("Bad expression at [%d %d]\n",p,q);
+      *success = false;
+    }
     return op;
 }
-uint32_t eval(int p,int q)
+uint32_t eval(int p,int q,bool* success)
 {
   if(p>q)
   {
-    Assert(0,"p>q!");
+      printf ("Bad expression ! p>q\n");
+      *success=false;
+      return 0;
   }
   else if(p==q)
   {
     if(tokens[p].type!=TK_Decimal)
-    Assert(0,"tokens[p].type!=TK_Decimal");
+    {
+      printf ("tokens[p].type!=TK_Decimal at [%d %d]\n",p,q);
+      *success=false;
+      return 0;
+    }
     uint32_t total = 0;
     uint32_t i=0;
     while(tokens[p].str[i]!='\0')
@@ -217,15 +237,24 @@ uint32_t eval(int p,int q)
   if(check!=0)
   {
     if(check==-1)
-    Assert(0,"Bad expression !\n");
-    return eval(p+1,q-1);
+    {
+      printf("Bad expression ! check_parenthese\n");
+      *success=false;
+    }
+    return eval(p+1,q-1,success);
   }
   else
   {
-    uint32_t op = findMainOp(p,q);
-    //printf("p: %d,OP: %d,q: %d\n",p,op,q);
-    uint32_t val1= eval(p,op-1);
-    uint32_t val2 = eval(op+1,q);
+    uint32_t op = findMainOp(p,q,success);
+    printf("p=%d op = %d q=%d \n",p,op,q);
+    if(*success==false)
+    return 0;
+    uint32_t val1= eval(p,op-1,success);
+    if(*success==false)
+    return 0;
+    uint32_t val2 = eval(op+1,q,success);
+    if(*success==false)
+    return 0;
     switch (tokens[op].type)
     {
       case TK_Plus:
@@ -236,11 +265,23 @@ uint32_t eval(int p,int q)
         return val1*val2;
       case TK_Diagonal:
         if(val2==0)
-        Assert(0,"Divide by 0 !\n");
+        {
+          printf("Divide by 0 !\n");
+          *success=false;
+          return 0;
+        }
         return val1/val2;
-      default: Assert(0,"Bad expression !");
+      default: printf("Bad expression !\n"); *success = false;return 0;
     }
   }
+}
+void adjustment(int x , int cnt)
+{
+  for(int i=x;i+cnt<nr_token;++i)
+  {
+    tokens[i]=tokens[i+cnt];
+  }
+  nr_token-=cnt;
 }
 
 uint32_t expr(char *e, bool *success) {
@@ -249,19 +290,66 @@ uint32_t expr(char *e, bool *success) {
     *success = false;
     return 0;
   }
+  printf("nr_token is %d \n",nr_token);
+  for(int i=0;i<nr_token;++i)
+  {
+   if(tokens[i].type==TK_Plus||tokens[i].type==TK_Subtraction) 
+   {
+     int j=i;
+     int flag =1;
+     while (j<nr_token&&(tokens[j].type==TK_Plus||tokens[j].type==TK_Subtraction))
+     {
+          flag *= tokens[j].type==TK_Plus ? 1:-1;
+          j++;
+     }
+    if(j-i>1) 
+    {
+      adjustment(i,j-i-1);
+      printf("adjustment1");
+      tokens[i].type= flag==1? TK_Plus :TK_Subtraction;
+    }
+   }
+  }
+  //把负数变成正数，通过+来实现-,如把-10变成4294967287
+  //同时把(+/-)10(+/-)10,+10变换成10(+\-)10,10的形式,因为递归的写的函数expr()无法处理第一个加减符号
+  for(int i=0;i<nr_token;++i)
+  {
+    if(tokens[i].type==TK_Subtraction)
+    {
+      if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
+      {
+          uint32_t count =0;
+          int j=0;
+          while (tokens[i+1].str[j]!='\0')
+          {
+            count = count*10+tokens[i+1].str[j++]-'0';
+          }
+          count= -count;
+          sprintf(tokens[i+1].str,"%u",count);
+          //如果i==0就不用判断后面的了，如果i==0不成立那么i-1一定成立
+          if(i==0||tokens[i-1].type!=TK_Decimal)
+            adjustment(i,1);
+          else
+            tokens[i].type=TK_Plus;
+      }
+    }
+    else if(tokens[i].type==TK_Plus)
+          {
+            if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
+              if(i==0||tokens[i-1].type!=TK_Decimal)
+              {
+                adjustment(i,1);
+                printf("adjustment2");
+              }
+          }
+  }
 
-  printf("%s\n",e);
-  //printf("nr_tokens=%d\n",nr_token);
-  // for(int i=0;i<nr_token;++i)
-  // {
-    // printf("%d: %s %d \n",i,tokens[i].str,tokens[i].type);
-  // }
-
+  printf("nr_token is %d \n",nr_token);
+  //printf("%s\n",e);
   /* TODO: Insert codes to evaluate the expression. */
   //TODO();
-  int count = eval(0,nr_token-1);
-  //printf("count = %d\n",count);
-
+  uint32_t count = eval(0,nr_token-1,success);
   return count;
 }
+
 

@@ -61,6 +61,10 @@ static int cmd_info(char *args)
 }
 static int cmd_p(char* args)
 {
+  bool success =true;
+  uint32_t result = expr(args,&success);
+  if(success)
+    printf("%s = %d \n",args,result);
   return 0;
 }
 static int cmd_w(char *args)
@@ -118,11 +122,12 @@ static int cmd_x(char *args)
     }
     count++;
   }
-//    if(address>=128*1024*1024)
-//    {
-//        printf("\033[1;31m Memory address Overflow , Please write correct address!\033[0m\n");
-//       return 0;
-//    }
+    // if(address>=128*1024*1024)
+    // {
+    //     printf("\033[1;31m Memory address Overflow , Please write correct address!\033[0m\n");
+    //    return 0;
+    // }
+    //0x100000和0x008100000一样;
     address=address%(128*1024*1024);
     printf("\033[1;32mAddress       Big-Endian     Little-Endian\033[0m\n");
     for(int i=0;i<N;++i)
