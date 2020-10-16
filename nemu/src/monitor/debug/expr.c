@@ -35,7 +35,7 @@ static struct rule {
   {"-",TK_Subtraction},
   {"\\*",TK_Asterisk},
   {"/",TK_Diagonal},
-  {"[a-zA-z]+",TK_REG}, //register
+  {"\\$[a-zA-z]+",TK_REG}, //register
   {"\\(",TK_LParentheses},
   {"\\)",TK_RParentheses},
   {"[0-9]+",TK_Decimal},
@@ -262,8 +262,7 @@ uint32_t calucate(int pos,bool* success)
         }
       }
       else
-        total=isa_reg_str2val(tokens[pos].str,success);
-      // printf("%u \n",total);
+        total=isa_reg_str2val(&tokens[pos].str[1],success);
       return total;
 }
 
@@ -299,7 +298,6 @@ uint32_t eval(int p,int q,bool* success)
   else
   {
     uint32_t op = findMainOp(p,q,success);
-    // printf("The op is %d\n",op);
     if(*success==false)
     return 0;
     uint32_t val1 =0;
@@ -356,18 +354,6 @@ void adjustment(int x , int cnt)
   }
   nr_token-=cnt;
 }
-// bool remove_sign(int judgment,int pos)
-//   {
-//     if(judgment!=TK_Plus&&judgment!=TK_Subtraction)
-//       return false;
-//     if(pos==0)
-//       return true;
-//     int tmp=tokens[pos-1].type;
-//     if(tmp==TK_EQ||tmp==TK_NOTEQ||tmp==TK_AND||tmp==TK_LParentheses
-//        ||tmp==TK_Asterisk||tmp==TK_Diagonal)
-//        return true;
-//     return false;
-//   }
   bool judge_Dereference(int judgment,int pos)
   {
     if(judgment!=TK_Asterisk)
@@ -409,34 +395,6 @@ uint32_t expr(char *e, bool *success) {
   }
     for(int i=0;i<nr_token;++i)
   {
-    // if(tokens[i].type==TK_Subtraction)
-    // {
-    //   if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
-    //   {
-    //       uint32_t count =0;
-    //       int j=0;
-    //       while (tokens[i+1].str[j]!='\0')
-    //       {
-    //         count = count*10+tokens[i+1].str[j++]-'0';
-    //       }
-    //       //由-变+
-    //       count= -count;
-    //       sprintf(tokens[i+1].str,"%u",count);
-    //       //如果i==0就不用判断后面的了，如果i==0不成立那么i-1一定成立,(+100),*+100,/+100的情况全部变为(100),*100,/100的情况
-    //       if(i==0||remove_sign(tokens[i].type,i))
-    //         adjustment(i,1);
-    //       else
-    //         tokens[i].type=TK_Plus;
-    //   }
-    // }
-    // else if(tokens[i].type==TK_Plus)
-    // {
-    //   if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
-    // //如果i==0就不用判断后面的了，如果i==0不成立那么i-1一定成立,(+100),*+100,/+100的情况全部变为(100),*100,/100的情况
-    //       if(remove_sign(tokens[i].type,i)){
-    //         adjustment(i,1);
-    //       }
-    // }
     if (judge_Dereference(tokens[i].type,i))
         tokens[i].type=TK_Dereference;
     }
@@ -448,4 +406,5 @@ uint32_t expr(char *e, bool *success) {
   printf("\033[0m");
   return count;
 }
+
 
