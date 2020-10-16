@@ -5,10 +5,11 @@
 #include <sys/types.h>
 #include <regex.h>
 
+uint32_t isa_reg_str2val(const char *s, bool *success);
 enum {
   TK_NOTYPE = 256,TK_Plus , TK_EQ , TK_NOTEQ,TK_HexadecimalNumber,TK_AND,TK_Subtraction , TK_Asterisk
   ,TK_Diagonal , TK_LParentheses , TK_RParentheses
-  ,TK_Decimal,TK_REG
+  ,TK_Decimal,TK_REG,TK_Dereference,TK_OR,TK_LessOrEq,TK_GreOrEq,TK_Less,TK_Gre
   /* TODO: Add more token types */
 };
 
@@ -37,7 +38,12 @@ static struct rule {
   {"[a-zA-z]+",TK_REG}, //register
   {"\\(",TK_LParentheses},
   {"\\)",TK_RParentheses},
-  {"[0-9]+",TK_Decimal}
+  {"[0-9]+",TK_Decimal},
+  {"\\|\\|",TK_OR},
+  {"<=",TK_LessOrEq},
+  {">=",TK_GreOrEq},
+  {"<",TK_Less},
+  {">",TK_Gre}
 };
 
 #define NR_REGEX (sizeof(rules) / sizeof(rules[0]) )
@@ -102,6 +108,7 @@ static bool make_token(char *e) {
               break;
           case TK_Decimal :
           case TK_HexadecimalNumber:
+          case TK_REG:
             tokens[nr_token].type=rules[i].token_type;
             if(substr_len>=32){
               printf("\033[0;33m Decimal Number Overflow !\n\033[0m;");
@@ -170,34 +177,41 @@ int check_parentheses(int p,int q)
   }
   return result;
 }
-
+int op_precedence(int judgment)
+{
+  switch(judgment)
+  {
+    case TK_Dereference: return 2;
+    case TK_Asterisk: case TK_Diagonal: return 3;
+    case TK_Plus: case TK_Subtraction: return 4;
+    case TK_Less: case TK_Gre: case TK_LessOrEq: case TK_GreOrEq : return 6;
+    case TK_EQ: case TK_NOTEQ : return 7;
+    case TK_AND : return 11;
+    case TK_OR : return 12;
+  }
+  return 0;
+}
 uint32_t findMainOp(int p,int q,bool* success)
 {
     uint32_t op = p;
     int layer = 0;
-    for(int i=p;i<=q;++i)
-    {
+    int precedence = 0;
+    for(int i=p;i<=q;++i){
       if(layer==0){
-        switch(tokens[i].type)
-        {
-          case TK_Plus:
-          case TK_Subtraction:
-            op=i;
-            break;
-          case TK_Diagonal:
-          case TK_Asterisk:
-            if(tokens[op].type!=TK_Plus&&tokens[op].type!=TK_Subtraction)
-              op=i;
-            break;
-          case TK_LParentheses:
-             layer++;
-            break;
-          case TK_RParentheses:
+        int type = tokens[i].type;
+        if(type==TK_LParentheses){
+            layer++;
+            continue;
+          }
+         if(type==TK_RParentheses){
             printf("Bad expression at [%d %d]\n",p,q);
            *success = false;
             return 0;
-            break;
-        }
+         }
+         int type_prcedence = op_precedence(type);
+         if(type_prcedence>=precedence){
+           op=i;precedence=type_prcedence;
+         }
       }
       else
       {
@@ -207,7 +221,7 @@ uint32_t findMainOp(int p,int q,bool* success)
         layer++;
       }
     }
-    if(layer!=0)
+    if(layer!=0||precedence==0)
     {
       printf("Bad expression at [%d %d]\n",p,q);
       *success = false;
@@ -218,35 +232,41 @@ uint32_t calucate(int pos,bool* success)
 {
   uint32_t total = 0;
       uint32_t i=0;
-      bool isDecimal = tokens[pos].type==TK_Decimal ? true:false;
-      while(tokens[pos].str[i]!='\0')
-      {
-        if(isDecimal)
-        total=total*10+(tokens[pos].str[i++]-'0');
-        else
+      if(tokens[pos].type!=TK_REG){
+        bool isDecimal = tokens[pos].type==TK_Decimal ? true:false;
+        while(tokens[pos].str[i]!='\0')
         {
-          if(i>=10)
-           {
-             printf("Bad hexadecimal number !\n");
-             *success=false;
-             return 0;
-           }
-          if(i==0||i==1)
+          if(isDecimal)
+          total=total*10+(tokens[pos].str[i++]-'0');
+          else
           {
-            i++;
-            continue;
-          }
-            char c = tokens[pos].str[i++];
-            if(c<='9'&&c>='0')
-              total = total*16+(c-'0');
-            else if (c<='f'&&c>='a')
-              total = total*16+(c-'a'+10);
-            else 
-              total = total*16+(c-'A'+10);
-       }
+            if(i>=10)
+             {
+               printf("Bad hexadecimal number !\n");
+               *success=false;
+               return 0;
+             }
+            if(i==0||i==1)
+            {
+              i++;
+              continue;
+            }
+              char c = tokens[pos].str[i++];
+              if(c<='9'&&c>='0')
+                total = total*16+(c-'0');
+              else if (c<='f'&&c>='a')
+                total = total*16+(c-'a'+10);
+              else 
+                total = total*16+(c-'A'+10);
+         }
+        }
       }
+      else
+        total=isa_reg_str2val(tokens[pos].str,success);
+      // printf("%u \n",total);
       return total;
 }
+
 uint32_t eval(int p,int q,bool* success)
 {
   if(p>q)
@@ -257,7 +277,7 @@ uint32_t eval(int p,int q,bool* success)
   }
   else if(p==q)
   {
-    if(tokens[p].type!=TK_Decimal&&tokens[p].type!=TK_HexadecimalNumber)
+    if(tokens[p].type!=TK_Decimal&&tokens[p].type!=TK_HexadecimalNumber&&tokens[p].type!=TK_REG)
     {
       printf ("Bad expression !\n");
       *success=false;
@@ -279,9 +299,12 @@ uint32_t eval(int p,int q,bool* success)
   else
   {
     uint32_t op = findMainOp(p,q,success);
+    // printf("The op is %d\n",op);
     if(*success==false)
     return 0;
-    uint32_t val1= eval(p,op-1,success);
+    uint32_t val1 =0;
+    if(tokens[op].type!=TK_Dereference)
+    val1= eval(p,op-1,success);
     if(*success==false)
     return 0;
     uint32_t val2 = eval(op+1,q,success);
@@ -303,6 +326,24 @@ uint32_t eval(int p,int q,bool* success)
           return 0;
         }
         return val1/val2;
+      case TK_Dereference :
+        return vaddr_read(val2,4);
+      case TK_EQ :
+        return val1==val2;
+      case TK_NOTEQ:
+        return val1!=val2;
+      case TK_AND:
+        return val1&&val2;
+      case TK_OR:
+        return val1||val2;
+      case TK_Less:
+        return val1<val2;
+      case TK_Gre:
+        return val1>val2;
+      case TK_LessOrEq:
+        return val1<=val2;
+      case TK_GreOrEq:
+        return val1>=val2;
       default: printf("Bad expression !\n"); *success = false;return 0;
     }
   }
@@ -315,6 +356,32 @@ void adjustment(int x , int cnt)
   }
   nr_token-=cnt;
 }
+// bool remove_sign(int judgment,int pos)
+//   {
+//     if(judgment!=TK_Plus&&judgment!=TK_Subtraction)
+//       return false;
+//     if(pos==0)
+//       return true;
+//     int tmp=tokens[pos-1].type;
+//     if(tmp==TK_EQ||tmp==TK_NOTEQ||tmp==TK_AND||tmp==TK_LParentheses
+//        ||tmp==TK_Asterisk||tmp==TK_Diagonal)
+//        return true;
+//     return false;
+//   }
+  bool judge_Dereference(int judgment,int pos)
+  {
+    if(judgment!=TK_Asterisk)
+      return false;
+    if(pos==0)
+    return true;
+    int tmp = tokens[pos-1].type;
+    if(tmp==TK_EQ||tmp==TK_NOTEQ||tmp==TK_AND||tmp==TK_LParentheses
+       ||tmp==TK_Plus||tmp==TK_Asterisk||tmp==TK_Dereference||tmp==TK_Diagonal
+       ||tmp==TK_Subtraction)
+       return true;
+    return false;
+  }
+ 
 
 uint32_t expr(char *e, bool *success) {
 
@@ -340,46 +407,38 @@ uint32_t expr(char *e, bool *success) {
     }
    }
   }
-  bool remove_sign(int judgment)
+    for(int i=0;i<nr_token;++i)
   {
-    return judgment==TK_Asterisk||judgment==TK_LParentheses||judgment==TK_Diagonal;
-  }
-
-  //把负数变成正数，通过+来实现-,如把-10变成4294967287
-  //同时把(+/-)10(+/-)10,+10变换成10(+\-)10,10的形式,因为递归的写的函数expr()无法处理第一个加减符号
-  for(int i=0;i<nr_token;++i)
-  {
-    if(tokens[i].type==TK_Subtraction)
-    {
-      if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
-      {
-          uint32_t count =0;
-          int j=0;
-          while (tokens[i+1].str[j]!='\0')
-          {
-            count = count*10+tokens[i+1].str[j++]-'0';
-          }
-          //由-变+
-          count= -count;
-          sprintf(tokens[i+1].str,"%u",count);
-          //如果i==0就不用判断后面的了，如果i==0不成立那么i-1一定成立,(+100),*+100,/+100的情况全部变为(100),*100,/100的情况
-          if(i==0||remove_sign(tokens[i].type))
-            adjustment(i,1);
-          else
-            tokens[i].type=TK_Plus;
-      }
-    }
-    else if(tokens[i].type==TK_Plus)
-    {
-      if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
-    //如果i==0就不用判断后面的了，如果i==0不成立那么i-1一定成立,(+100),*+100,/+100的情况全部变为(100),*100,/100的情况
-          if(i==0||remove_sign(tokens[i].type))
-          adjustment(i,1);
-    }
-    // else if (tokens[i].type==TK_Asterisk&&(i==0||tokens[i-1].type!=TK_Decimal||tokens[i-1].type!=TK_HexadecimalNumber))
-    //     {
-  
-    //     }
+    // if(tokens[i].type==TK_Subtraction)
+    // {
+    //   if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
+    //   {
+    //       uint32_t count =0;
+    //       int j=0;
+    //       while (tokens[i+1].str[j]!='\0')
+    //       {
+    //         count = count*10+tokens[i+1].str[j++]-'0';
+    //       }
+    //       //由-变+
+    //       count= -count;
+    //       sprintf(tokens[i+1].str,"%u",count);
+    //       //如果i==0就不用判断后面的了，如果i==0不成立那么i-1一定成立,(+100),*+100,/+100的情况全部变为(100),*100,/100的情况
+    //       if(i==0||remove_sign(tokens[i].type,i))
+    //         adjustment(i,1);
+    //       else
+    //         tokens[i].type=TK_Plus;
+    //   }
+    // }
+    // else if(tokens[i].type==TK_Plus)
+    // {
+    //   if(i+1<nr_token&&tokens[i+1].type==TK_Decimal)
+    // //如果i==0就不用判断后面的了，如果i==0不成立那么i-1一定成立,(+100),*+100,/+100的情况全部变为(100),*100,/100的情况
+    //       if(remove_sign(tokens[i].type,i)){
+    //         adjustment(i,1);
+    //       }
+    // }
+    if (judge_Dereference(tokens[i].type,i))
+        tokens[i].type=TK_Dereference;
     }
 
   /* TODO: Insert codes to evaluate the expression. */
@@ -389,3 +448,4 @@ uint32_t expr(char *e, bool *success) {
   printf("\033[0m");
   return count;
 }
+

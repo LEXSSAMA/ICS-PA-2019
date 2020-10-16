@@ -45,40 +45,52 @@ void isa_reg_display(char* args) {
   char *arg = strtok(NULL," ");
   if(arg[0]=='r')
   {
-  printf("EAX           0x%x    %d\n",cpu.gpr[R_EAX]._32,cpu.gpr[R_EAX]._32);
-  printf(" AX           0x%x    %d\n",cpu.gpr[R_AX]._16,cpu.gpr[R_AX]._16);
-  printf(" AH           0x%x    %d\n",cpu.gpr[R_AH&0x3]._8[1],cpu.gpr[R_AH&0x3]._8[1]);
-  printf(" AL           0x%x    %d\n",cpu.gpr[R_AL&0x3]._8[0],cpu.gpr[R_AL&0x3]._8[0]);
+  printf("\033[0;36mEAX           0x%x    %d\033[0;m\n",cpu.gpr[R_EAX]._32,cpu.gpr[R_EAX]._32);
+  printf("\033[0;36m AX           0x%x    %d\033[0;m\n",cpu.gpr[R_AX]._16,cpu.gpr[R_AX]._16);
+  printf("\033[0;36m AH           0x%x    %d\033[0;m\n",cpu.gpr[R_AH&0x3]._8[1],cpu.gpr[R_AH&0x3]._8[1]);
+  printf("\033[0;36m AL           0x%x    %d\033[0;m\n",cpu.gpr[R_AL&0x3]._8[0],cpu.gpr[R_AL&0x3]._8[0]);
 
-  printf("EDX           0x%x    %d\n",cpu.gpr[R_EDX]._32,cpu.gpr[R_EDX]._32);
-  printf(" DX           0x%x    %d\n",cpu.gpr[R_DX]._16,cpu.gpr[R_DX]._16);
-  printf(" DH           0x%x    %d\n",cpu.gpr[R_DH&0x3]._8[1],cpu.gpr[R_DH&0x3]._8[1]);
-  printf(" DL           0x%x    %d\n",cpu.gpr[R_DL&0x3]._8[0],cpu.gpr[R_DL&0x3]._8[0]);
+  printf("\033[0;36mEDX           0x%x    %d\033[0;m\n",cpu.gpr[R_EDX]._32,cpu.gpr[R_EDX]._32);
+  printf("\033[0;36m DX           0x%x    %d\033[0;m\n",cpu.gpr[R_DX]._16,cpu.gpr[R_DX]._16);
+  printf("\033[0;36m DH           0x%x    %d\033[0;m\n",cpu.gpr[R_DH&0x3]._8[1],cpu.gpr[R_DH&0x3]._8[1]);
+  printf("\033[0;36m DL           0x%x    %d\033[0;m\n",cpu.gpr[R_DL&0x3]._8[0],cpu.gpr[R_DL&0x3]._8[0]);
 
-  printf("ECX           0x%x    %d\n",cpu.gpr[R_ECX]._32,cpu.gpr[R_ECX]._32);
-  printf(" CX           0x%x    %d\n",cpu.gpr[R_CX]._16,cpu.gpr[R_CX]._16);
-  printf(" CH           0x%x    %d\n",cpu.gpr[R_CH&0x3]._8[1],cpu.gpr[R_CH&0x3]._8[1]);
-  printf(" CL           0x%x    %d\n",cpu.gpr[R_CL&0x3]._8[0],cpu.gpr[R_CL&0x3]._8[0]);
+  printf("\033[0;36mECX           0x%x    %d\033[0;m\n",cpu.gpr[R_ECX]._32,cpu.gpr[R_ECX]._32);
+  printf("\033[0;36m CX           0x%x    %d\033[0;m\n",cpu.gpr[R_CX]._16,cpu.gpr[R_CX]._16);
+  printf("\033[0;36m CH           0x%x    %d\033[0;m\n",cpu.gpr[R_CH&0x3]._8[1],cpu.gpr[R_CH&0x3]._8[1]);
+  printf("\033[0;36m CL           0x%x    %d\033[0;m\n",cpu.gpr[R_CL&0x3]._8[0],cpu.gpr[R_CL&0x3]._8[0]);
 
-  printf("EBX           0x%x    %d\n",cpu.gpr[R_EBX]._32,cpu.gpr[R_EBX]._32);
-  printf(" BX           0x%x    %d\n",cpu.gpr[R_BX]._16,cpu.gpr[R_BX]._16);
-  printf(" BH           0x%x    %d\n",cpu.gpr[R_BH&0x3]._8[1],cpu.gpr[R_BH&0x3]._8[1]);
-  printf(" BL           0x%x    %d\n",cpu.gpr[R_BL&0x3]._8[0],cpu.gpr[R_BL&0x3]._8[0]);
+  printf("\033[0;36mEBX           0x%x    %d\033[0;m\n",cpu.gpr[R_EBX]._32,cpu.gpr[R_EBX]._32);
+  printf("\033[0;36m BX           0x%x    %d\033[0;m\n",cpu.gpr[R_BX]._16,cpu.gpr[R_BX]._16);
+  printf("\033[0;36m BH           0x%x    %d\033[0;m\n",cpu.gpr[R_BH&0x3]._8[1],cpu.gpr[R_BH&0x3]._8[1]);
+  printf("\033[0;36m BL           0x%x    %d\033[0;m\n",cpu.gpr[R_BL&0x3]._8[0],cpu.gpr[R_BL&0x3]._8[0]);
 
 
-  printf("ESP           0x%x    %d\n",cpu.gpr[R_ESP]._32,cpu.gpr[R_ESP]._32);
-  printf(" SP           0x%x    %d\n",cpu.gpr[R_SP]._32,cpu.gpr[R_SP]._32);
+  printf("\033[0;36mESP           0x%x    %d\033[0;m\n",cpu.gpr[R_ESP]._32,cpu.gpr[R_ESP]._32);
+  printf("\033[0;36m SP           0x%x    %d\033[0;m\n",cpu.gpr[R_SP]._16,cpu.gpr[R_SP]._16);
 
-  printf("ESI           0x%x    %d\n",cpu.gpr[R_ESI]._32,cpu.gpr[R_ESI]._32);
-  printf(" SI           0x%x    %d\n",cpu.gpr[R_SI]._32,cpu.gpr[R_SI]._32);
+  printf("\033[0;36mESI           0x%x    %d\033[0;m\n",cpu.gpr[R_ESI]._32,cpu.gpr[R_ESI]._32);
+  printf("\033[0;36m SI           0x%x    %d\033[0;m\n",cpu.gpr[R_SI]._16,cpu.gpr[R_SI]._16);
 
-  printf("EDI           0x%x    %d\n",cpu.gpr[R_EDI]._32,cpu.gpr[R_EDI]._32);
-  printf(" DI           0x%x    %d\n",cpu.gpr[R_DI]._32,cpu.gpr[R_DI]._32);
+  printf("\033[0;36mEDI           0x%x    %d\033[0;m\n",cpu.gpr[R_EDI]._32,cpu.gpr[R_EDI]._32);
+  printf("\033[0;36m DI           0x%x    %d\033[0;m\n",cpu.gpr[R_DI]._16,cpu.gpr[R_DI]._16);
   }
 
  }
 
 uint32_t isa_reg_str2val(const char *s, bool *success) {
+  if(strcasecmp(s,"pc")==0)
+      return cpu.pc;
+  for(int i=R_EAX;i<=R_EDI;++i)
+    if(strcasecmp(s,regsl[i])==0)
+      return reg_l(i);
+  for(int i=R_AX;i<=R_DI;++i)
+    if(strcasecmp(s,regsw[i])==0)
+      return reg_w(i);
+  for(int i=R_AL;i<=R_BH;++i)
+      if(strcasecmp(s,regsb[i])==0)
+        return reg_b(i);
+  *success=false;
   return 0;
 }
 
