@@ -20,7 +20,7 @@ void testExpr()
       printf("Bad expression : %s \n",str);
     if(count!=num)
       printf("The count from program : %u , The count from file : %u\n",count,num);
-    printf("%s=%u\n",str,count);
+    printf("%s=%d\n",str,count);
   }
     fclose(fp);
     return ;

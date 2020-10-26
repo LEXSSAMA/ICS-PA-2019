@@ -9,6 +9,9 @@
 
 void cpu_exec(uint64_t);
 void isa_reg_display();
+WP* new_wp();
+bool free_wp(int NO);
+void watchpoints_display();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -56,7 +59,13 @@ static int cmd_si(char *args)
 }
 static int cmd_info(char *args)
 {
+  char* str = strtok(NULL," ");
+  if(str==NULL)
+    return 0;
+  if(strcasecmp(str,"r")==0)
   isa_reg_display(args);
+  else if(strcasecmp(str,"w")==0)
+  watchpoints_display();
   return 0;
 }
 static int cmd_p(char* args)
@@ -64,15 +73,40 @@ static int cmd_p(char* args)
   bool success =true;
   uint32_t result = expr(args,&success);
   if(success)
-    printf("%s = %d \n",args,result);
+    printf("\033[0;32m %s = %d(%#x) \033[0m;\n",args,result,result);
   return 0;
 }
 static int cmd_w(char *args)
 {
+ if(args==NULL)
+  {
+    printf("\033[1;33mPlease input the expression.\n\033[0m");
+    return 0;
+  }
+  bool success = true;
+  uint32_t oldValue = expr(args,&success);
+  if(!success)
+  {
+    printf("\033[1;31mExpression Wrong!\n\033[0m");
+    return 0;
+  }
+  WP* wp = new_wp();
+  wp->oldValue=oldValue;
+  memcpy(wp->expr,args,strlen(args)+1);
+  printf("\033[0;32mwatchpoint %d : %s\n\033[0m",wp->NO,wp->expr);
   return 0;
 }
 static int cmd_d(char *args)
 {
+  char* str = strtok(NULL," ");
+  bool success = true;
+  int num = expr(str,&success);
+  if(!success)
+  {
+    printf("\033[1;31mExpression Wrong!\n\033[0m");
+    return 0;
+  }
+  free_wp(num);
   return 0;
 }
 static int cmd_x(char *args)

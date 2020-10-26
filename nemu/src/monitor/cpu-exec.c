@@ -12,6 +12,8 @@
 /* restrict the size of log file */
 #define LOG_MAX (1024 * 1024)
 
+bool check_watchpoints();
+
 NEMUState nemu_state = {.state = NEMU_STOP};
 
 void interpret_rtl_exit(int state, vaddr_t halt_pc, uint32_t halt_ret) {
@@ -38,17 +40,20 @@ void cpu_exec(uint64_t n) {
     default: nemu_state.state = NEMU_RUNNING;
   }
 
+//__attribute__((unused)) variable attribute
+//Normally, the compiler warns if a variable is declared but is never referenced.
+//This attribute informs the compiler that you expect a variable to be unused and tells it not to issue a warning if it is not used.
   for (; n > 0; n --) {
-    __attribute__((unused)) vaddr_t ori_pc = cpu.pc;
+     __attribute__((unused)) vaddr_t ori_pc = cpu.pc;
 
-    /* Execute one instruction, including instruction fetch,
-     * instruction decode, and the actual execution. */
-    __attribute__((unused)) vaddr_t seq_pc = exec_once();
+    // /* Execute one instruction, including instruction fetch,
+    //  * instruction decode, and the actual execution. */
+     __attribute__((unused)) vaddr_t seq_pc = exec_once();
 
 #if defined(DIFF_TEST)
   difftest_step(ori_pc, cpu.pc);
 #endif
-
+//用来打印汇编代码
 #ifdef DEBUG
   if (g_nr_guest_instr < LOG_MAX) {
     asm_print(ori_pc, seq_pc - ori_pc, n < MAX_INSTR_TO_PRINT);
@@ -61,7 +66,9 @@ void cpu_exec(uint64_t n) {
   log_clearbuf();
 
     /* TODO: check watchpoints here. */
-
+    bool result = check_watchpoints();
+    if(!result)
+      nemu_state.state=NEMU_STOP;
 #endif
 
   g_nr_guest_instr ++;
@@ -85,3 +92,4 @@ void cpu_exec(uint64_t n) {
       monitor_statistic();
   }
 }
+
