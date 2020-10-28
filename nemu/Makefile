@@ -113,3 +113,11 @@ clean:
 	-rm -rf $(BUILD_DIR)
 	$(MAKE) -C tools/gen-expr clean
 	$(MAKE) -C tools/qemu-diff clean
+count:
+	@echo  "\e[1;32m"
+	@echo "The .c and .h file total number of row equal to :"
+	@find ./ -name "*.[ch]" | xargs wc -l | awk 'END{printf "%s\n",$$1}'
+	@echo "The .c and .h file (without blank line) total number of row equal to :"
+	@find ./ -name "*.[ch]" | xargs cat | grep -v '^\s*$$'| wc -l
+	@echo "\e[0m"
+

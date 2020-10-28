@@ -42,9 +42,6 @@ void reg_test() {
 
 //编写打印寄存器的基础设施
 void isa_reg_display(char* args) {
-  char *arg = strtok(NULL," ");
-  if(arg[0]=='r')
-  {
   printf("\033[0;36mEAX           0x%x    %d\033[0;m\n",cpu.gpr[R_EAX]._32,cpu.gpr[R_EAX]._32);
   printf("\033[0;36m AX           0x%x    %d\033[0;m\n",cpu.gpr[R_AX]._16,cpu.gpr[R_AX]._16);
   printf("\033[0;36m AH           0x%x    %d\033[0;m\n",cpu.gpr[R_AH&0x3]._8[1],cpu.gpr[R_AH&0x3]._8[1]);
@@ -74,8 +71,6 @@ void isa_reg_display(char* args) {
 
   printf("\033[0;36mEDI           0x%x    %d\033[0;m\n",cpu.gpr[R_EDI]._32,cpu.gpr[R_EDI]._32);
   printf("\033[0;36m DI           0x%x    %d\033[0;m\n",cpu.gpr[R_DI]._16,cpu.gpr[R_DI]._16);
-  }
-
  }
 
 uint32_t isa_reg_str2val(const char *s, bool *success) {

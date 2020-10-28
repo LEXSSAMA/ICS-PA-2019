@@ -113,48 +113,20 @@ static int cmd_x(char *args)
 {
   unsigned int N = 0;
   unsigned int address = 0;
-  unsigned int count =0;
+  bool success = true;
   char* arg = strtok(NULL," ");
-  for(int i =0;i<strlen(arg);i++)
+  N = expr(arg,&success);
+  if(!success)
   {
-    N=N*10+(arg[i]-'0');
+     printf("\033[1;31m please write correct expression ! \033[0m\n");
+     return 0;
   }
   arg = strtok(NULL," ");
-  if(strlen(arg)>10||arg[0]!='0'||arg[1]!='x')
+  address = expr(arg,&success);
+  if(!success)
   {
-    printf("\033[1;31m please write correct address ! \033[0m\n");
-    return 0;
-  }
-  for(int i=strlen(arg)-1;i>1;--i)  
-  {
-    if(arg[i]<=102&&arg[i]>=97)
-    {
-      int num = arg[i]-'a'+10;
-      int j=0;
-      while(j<count)
-      {
-        num*=16;
-        j++;
-      }
-      address+=num;
-    }
-    else if(arg[i]<=57&&arg[i]>=48)
-    {
-      int num = arg[i]-'0';
-      int j=0;
-      while(j<count)
-      {
-        num*=16;
-        j++;
-      }
-      address+=num;
-    }
-    else
-    {
-       printf("\033[1;31m please write the correct address ! \033[0m\n");
-       return 0;
-    }
-    count++;
+     printf("\033[1;31m please write correct address ! \033[0m\n");
+     return 0;
   }
     // if(address>=128*1024*1024)
     // {
@@ -267,5 +239,4 @@ void ui_mainloop(int is_batch_mode) {
     if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
   }
 }
-
 
