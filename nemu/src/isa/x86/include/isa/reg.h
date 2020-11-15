@@ -16,11 +16,6 @@ enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
  * For more details about the register encoding scheme, see i386 manual.
  */
 typedef struct {
-  // struct {
-  //   uint32_t _32;
-  //   uint16_t _16;
-  //   uint8_t _8[2];
-  // } gpr[8];
   union{
   /* Do NOT change the order of the GPRs' definitions. */
     union {
@@ -28,10 +23,6 @@ typedef struct {
       uint16_t _16;
       uint8_t _8[2];
     } gpr[8];
-
-  /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
-   * in PA2 able to directly access these registers.
-   */
   //rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
   //为什么要把rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;用匿名结构体包裹起来呢?
   //因为为了匹配上gpr[8]的内存，如果不用struct包裹的话，eax, ecx, edx, ebx, esp, ebp, esi, edi就如一个变量一样只会指向gpr[0]
@@ -42,6 +33,35 @@ typedef struct {
     };
   };
   vaddr_t pc;
+  /* In NEMU, rtlreg_t is exactly uint32_t. This makes RTL instructions
+   * in PA2 able to directly access these registers.
+   */
+  //PA2.1 2020/11/13
+  union
+  {
+    struct 
+    {
+      uint32_t CF :1;
+      uint32_t reserve0 : 1;
+      uint32_t PF : 1;
+      uint32_t reserve1 :1;
+      uint32_t AF :1;
+      uint32_t reserve2 :1;
+      uint32_t ZF :1;
+      uint32_t SF :1;
+      uint32_t TF :1;
+      uint32_t IF :1;
+      uint32_t DF :1;
+      uint32_t OF :1;
+      uint32_t IOPL :2;
+      uint32_t NT :1;
+      uint32_t reserve3 :1;
+      uint32_t RF :1;
+      uint32_t VM : 1;
+      uint32_t reserve4 :14;
+    };
+    uint32_t val;    
+  }flags;
 
 } CPU_state;
 
@@ -53,7 +73,7 @@ static inline int check_reg_index(int index) {
 #define reg_l(index) (cpu.gpr[check_reg_index(index)]._32)
 #define reg_w(index) (cpu.gpr[check_reg_index(index)]._16)
 #define reg_b(index) (cpu.gpr[check_reg_index(index) & 0x3]._8[index >> 2])
-
+#define reg_f(flag)  (cpu.flags.flag)
 static inline const char* reg_name(int index, int width) {
   extern const char* regsl[];
   extern const char* regsw[];
