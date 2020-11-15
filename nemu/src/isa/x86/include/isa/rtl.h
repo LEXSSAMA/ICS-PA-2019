@@ -41,13 +41,28 @@ static inline void rtl_pop(rtlreg_t* dest) {
 static inline void rtl_is_sub_overflow(rtlreg_t* dest,
     const rtlreg_t* res, const rtlreg_t* src1, const rtlreg_t* src2, int width) {
   // dest <- is_overflow(src1 - src2)
-  TODO();
+  //两个同符号的数相减不会产生溢出
+  if(is_sign(src1,width)==is_sign(src2,width))
+      *dest = 0;
+  else
+  {
+    /*src1 is positive , positive-negative = negative,则代表溢出
+      src1是负数 ,负数 - 正数 = 正数 ，则代表溢出*/
+      rtl_sub(&t0,src1,src2);
+      if(is_sign(&t0,width)!=is_sign(src1,width))
+        *dest = 1;
+      else
+        *dest = 0;
+  }
 }
 
 static inline void rtl_is_sub_carry(rtlreg_t* dest,
     const rtlreg_t* res, const rtlreg_t* src1) {
   // dest <- is_carry(src1 - src2)
-  TODO();
+  if(*res>*src1)
+    *dest = 1;
+  else
+    *dest = 0;
 }
 
 static inline void rtl_is_add_overflow(rtlreg_t* dest,

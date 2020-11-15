@@ -66,7 +66,6 @@ make_EHelper(adc) {
   rtl_update_ZFSF(&s1, id_dest->width);
 
   // update CF
-  //s1=(dest+src+CF)&(0xffffffffu>>((4-id_dest->width)*8)),s0=dest+src
   rtl_is_add_carry(&s1, &s1, &s0);
   rtl_is_add_carry(&s0, &s0, &id_dest->val);
   rtl_or(&s0, &s0, &s1);

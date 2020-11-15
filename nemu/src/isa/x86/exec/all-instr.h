@@ -9,3 +9,8 @@ make_EHelper(nemu_trap);
 
 //arith.c
 make_EHelper(add);
+make_EHelper(adc);
+make_EHelper(sbb);
+
+//logic.c
+make_EHelper(or);

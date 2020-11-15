@@ -20,8 +20,18 @@ make_EHelper(xor) {
 }
 
 make_EHelper(or) {
-  TODO();
-
+  rtl_or(&s0,&id_dest->val,&id_src->val);
+  operand_write(id_dest,&s0);
+  //更新ZFSF
+  if(id_dest->width!=4)
+  {
+    rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8))):
+  }
+  rtl_update_ZFSF(&s0,id_dest->width);
+  //更新CF和OF,因为是或操作所以不会有进位和溢出的情况
+  s1 = 0;
+  rtl_set_CF(&s1);
+  rtl_set_OF(&s1);
   print_asm_template2(or);
 }
 
