@@ -8,8 +8,17 @@ make_EHelper(test) {
 }
 
 make_EHelper(and) {
-  TODO();
-
+  rtl_and(&s0,&id_dest->val,&id_src->val);
+  operand_write(id_dest,&s0);
+  if(id_dest->width!=4)
+  {
+    rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8)));
+  }
+  rtl_update_ZFSF(&s0,id_dest->width);
+  // "and" operation doesn't affect ZF and CF flags
+  s0 = 0;
+  rtl_set_CF(&s0);
+  rtl_set_ZF(&s0);
   print_asm_template2(and);
 }
 
@@ -25,7 +34,7 @@ make_EHelper(or) {
   //更新ZFSF
   if(id_dest->width!=4)
   {
-    rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8))):
+    rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8)));
   }
   rtl_update_ZFSF(&s0,id_dest->width);
   //更新CF和OF,因为是或操作所以不会有进位和溢出的情况

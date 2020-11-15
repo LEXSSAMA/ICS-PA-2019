@@ -14,3 +14,4 @@ make_EHelper(sbb);
 
 //logic.c
 make_EHelper(or);
+make_EHelper(and);
