@@ -6,26 +6,38 @@ make_EHelper(mov) {
 }
 
 make_EHelper(push) {
-  TODO();
-
+  rtl_push(&id_dest->val);
   print_asm_template1(push);
 }
 
 make_EHelper(pop) {
-  TODO();
-
+  rtl_pop(&s0);
+  operand_write(id_dest,&s0);
   print_asm_template1(pop);
 }
 
 make_EHelper(pusha) {
-  TODO();
-
+  s0 = reg_l(R_ESP);
+  rtl_push(&reg_l(R_EAX));
+  rtl_push(&reg_l(R_ECX));
+  rtl_push(&reg_l(R_EDX));
+  rtl_push(&reg_l(R_EBX));
+  rtl_push(&s0);
+  rtl_push(&reg_l(R_EBP));
+  rtl_push(&reg_l(R_ESI));
+  rtl_push(&reg_l(R_EDI));
   print_asm("pusha");
 }
 
 make_EHelper(popa) {
-  TODO();
-
+  rtl_pop(&reg_l(R_EDI));
+  rtl_pop(&reg_l(R_ESI));
+  rtl_pop(&reg_l(R_EBP));
+  rtl_pop(&s0);     //(skip ESP)
+  rtl_pop(&reg_l(R_EBX));
+  rtl_pop(&reg_l(R_EDX));
+  rtl_pop(&reg_l(R_ECX));
+  rtl_pop(&reg_l(R_EAX));
   print_asm("popa");
 }
 

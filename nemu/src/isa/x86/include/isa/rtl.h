@@ -29,13 +29,15 @@ static inline void rtl_sr(int r, const rtlreg_t* src1, int width) {
 static inline void rtl_push(const rtlreg_t* src1) {
   // esp <- esp - 4
   // M[esp] <- src1
-  TODO();
+  reg_l(R_ESP) -=4;
+  rtl_sm(&reg_l(R_ESP),src1,4);
 }
 
 static inline void rtl_pop(rtlreg_t* dest) {
   // dest <- M[esp]
   // esp <- esp + 4
-  TODO();
+  rtl_lm(dest,&reg_l(R_ESP),4);
+  reg_l(R_ESP)+=4;
 }
 
 static inline void rtl_is_sub_overflow(rtlreg_t* dest,

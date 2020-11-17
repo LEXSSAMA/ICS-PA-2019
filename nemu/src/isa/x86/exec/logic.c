@@ -16,15 +16,23 @@ make_EHelper(and) {
   }
   rtl_update_ZFSF(&s0,id_dest->width);
   // "and" operation doesn't affect ZF and CF flags
-  s0 = 0;
-  rtl_set_CF(&s0);
-  rtl_set_ZF(&s0);
+  s1 = 0;
+  rtl_set_CF(&s1);
+  rtl_set_OF(&s1);
   print_asm_template2(and);
 }
 
 make_EHelper(xor) {
-  TODO();
-
+  rtl_xor(&s0,&id_dest->val,&id_src->val);
+  operand_write(id_dest,&s0);
+  if(id_dest->width!=4)
+  {
+    rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8)));
+  }
+  rtl_update_ZFSF(&s0,id_dest->width);
+  s1 = 0;
+  rtl_set_CF(&s1);
+  rtl_set_OF(&s1);
   print_asm_template2(xor);
 }
 
