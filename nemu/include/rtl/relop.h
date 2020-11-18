@@ -8,6 +8,7 @@ enum {
   //            |   |   +-- equal
   //            |   |   |   +-- invert
   //            |   |   |   |
+  //Here these or operations similar add operations
   RELOP_FALSE = 0 | 0 | 0 | 0,
   RELOP_TRUE  = 0 | 0 | 0 | 1,
   RELOP_EQ    = 0 | 0 | 2 | 0,

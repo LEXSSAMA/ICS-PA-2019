@@ -15,6 +15,7 @@ make_EHelper(sub);
 make_EHelper(cmp);
 make_EHelper(inc);
 make_EHelper(dec);
+make_EHelper(imul3);
 
 //logic.c
 make_EHelper(or);
@@ -26,3 +27,6 @@ make_EHelper(push);
 make_EHelper(pop);
 make_EHelper(pusha);
 make_EHelper(popa);
+
+//control.c
+make_EHelper(jcc);

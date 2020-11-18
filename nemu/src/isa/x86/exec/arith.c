@@ -185,7 +185,6 @@ make_EHelper(imul2) {
 
 // imul with three operands
 make_EHelper(imul3) {
-  //这里为什么要转化为有符号数？
   rtl_sext(&s0, &id_src->val, id_src->width);
   rtl_sext(&s1, &id_src2->val, id_src->width);
 
