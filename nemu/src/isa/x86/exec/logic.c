@@ -141,7 +141,7 @@ make_EHelper(rcl)
       rtl_set_OF(&s1);
     }
     operand_write(id_dest,&id_dest->val);
-    print_asm_template1(rol);
+    print_asm_template1(rcl);
 }
 
 make_EHelper(ror)
