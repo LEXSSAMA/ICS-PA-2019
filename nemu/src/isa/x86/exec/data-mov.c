@@ -42,28 +42,40 @@ make_EHelper(popa) {
 }
 
 make_EHelper(leave) {
-  TODO();
-
+  rtl_lr(&s0,R_EBP,4);
+  rtl_sr(R_ESP,&s0,4);
+  rtl_pop(&s0);
+  rtl_sr(R_EBP,&s0,4);
   print_asm("leave");
 }
-
+//Convert double word to Quadword  or Convert word to double word;
 make_EHelper(cltd) {
   if (decinfo.isa.is_operand_size_16) {
-    TODO();
+    rtl_lr(&s1,R_AX,2);
+    rtl_sext(&s0,&s1,2);
+    rtl_sari(&s1,&s0,16);
+    rtl_sr(R_DX,&s1,2);
   }
   else {
-    TODO();
+    rtl_lr(&s0,R_EAX,4);
+    rtl_sari(&s1,&s0,32);
+    rtl_sr(R_EDX,&s1,4);
   }
 
   print_asm(decinfo.isa.is_operand_size_16 ? "cwtl" : "cltd");
 }
 
+// Convert word to double word or Convert byte to word;
 make_EHelper(cwtl) {
   if (decinfo.isa.is_operand_size_16) {
-    TODO();
+      rtl_lr(&s1,R_AL,1);
+      rtl_sext(&s0,&s1,1);
+      rtl_sr(R_AX,&s0,2);
   }
   else {
-    TODO();
+    rtl_lr(&s1,R_AX,2);
+    rtl_sext(&s0,&s1,2);
+    rtl_sr(R_EAX,&s0,4);
   }
 
   print_asm(decinfo.isa.is_operand_size_16 ? "cbtw" : "cwtl");

@@ -21,12 +21,28 @@ make_EHelper(imul3);
 make_EHelper(or);
 make_EHelper(and);
 make_EHelper(xor);
+make_EHelper(test);
+make_EHelper(rol);
+make_EHelper(ror);
+make_EHelper(rcl);
+make_EHelper(rcr);
+make_EHelper(shl);
+make_EHelper(shr);
+make_EHelper(sar);
 
 //data-mov.c
 make_EHelper(push);
 make_EHelper(pop);
 make_EHelper(pusha);
 make_EHelper(popa);
+make_EHelper(lea);
+make_EHelper(cwtl);
+make_EHelper(cltd);
+make_EHelper(leave);
 
 //control.c
 make_EHelper(jcc);
+make_EHelper(ret);
+ 
+ //special.c
+ make_EHelper(nop);
