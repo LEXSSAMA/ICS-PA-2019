@@ -16,6 +16,7 @@ make_EHelper(cmp);
 make_EHelper(inc);
 make_EHelper(dec);
 make_EHelper(imul3);
+make_EHelper(imul2);
 make_EHelper(imul1);
 make_EHelper(mul);
 make_EHelper(neg);
@@ -35,6 +36,7 @@ make_EHelper(shl);
 make_EHelper(shr);
 make_EHelper(sar);
 make_EHelper(not);
+make_EHelper(setcc);
 
 //data-mov.c
 make_EHelper(push);
@@ -45,6 +47,8 @@ make_EHelper(lea);
 make_EHelper(cwtl);
 make_EHelper(cltd);
 make_EHelper(leave);
+make_EHelper(movzx);
+make_EHelper(movsx);
 
 //control.c
 make_EHelper(jcc);
