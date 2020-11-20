@@ -43,6 +43,12 @@ make_EHelper(leave);
 //control.c
 make_EHelper(jcc);
 make_EHelper(ret);
+make_EHelper(call);
+make_EHelper(jmp);
  
  //special.c
  make_EHelper(nop);
+
+ //system.c
+ make_EHelper(in);
+ make_EHelper(out);
