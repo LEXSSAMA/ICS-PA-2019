@@ -49,20 +49,50 @@ make_EHelper(cmp) {
 }
 
 make_EHelper(inc) {
-  id_src->val = 1;
-  exec_add(pc);
+  rtl_addi(&s0,&id_dest->val,1);
+  operand_write(id_dest,&s0);
+  if(id_dest->width!=4)
+  {
+    rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8)));
+  }
+  rtl_update_ZFSF(&s0,id_dest->width);
+  s1 = 1;
+  rtl_is_add_overflow(&s1,&s0,&s1,&id_dest->val,id_dest->width);
+  rtl_set_OF(&s1);
   print_asm_template1(inc);
 }
 
 make_EHelper(dec) {
-  id_src->val = 1;
-  exec_sub(pc);
+  rtl_subi(&s0,&id_dest->val,1);
+  operand_write(id_dest,&s0);
+  if(id_dest->width!=4)
+  {
+    rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8)));
+  }
+  rtl_update_ZFSF(&s0,id_dest->width);
+  s1 = 1;
+  rtl_is_sub_overflow(&s1,&s0,&id_dest->val,&s1,id_dest->val);
+  rtl_set_OF(&s1);
   print_asm_template1(dec);
 }
 
 make_EHelper(neg) {
-  TODO();
-
+  if(id_dest->val==0)
+    s0 = 0;
+  else
+    s0 = 1;
+  rtl_set_CF(&s0);
+  // same as 0-id_dest-val;
+  s0 = -(id_dest->val);
+  operand_write(id_dest,&s0);
+  if(id_dest->width!=4)
+  {
+      rtl_andi(&s0,&s0,(0xffffffffu>>((4-id_dest->width)*8)));
+  }
+  rtl_update_ZFSF(&s0,id_dest->width);
+  s1 = 0;
+  rtl_is_sub_overflow(&s1,&s0,&s1,&id_dest->val,id_dest->width);
+  rtl_set_OF(&s1);
   print_asm_template1(neg);
 }
 
