@@ -3,7 +3,8 @@
 version=ics2019
 
 log=""
-
+#封装一个init函数
+#下面init nemu NEMU_HOME等等调用
 function init() {
   if [ -d $1 ]; then
     echo "$1 is already initialized, exiting..."
