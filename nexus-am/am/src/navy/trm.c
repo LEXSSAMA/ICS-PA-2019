@@ -9,5 +9,5 @@ void _putc(char ch) {
 }
 
 void _halt(int code) {
-  while (1);
+     while (1);
 }

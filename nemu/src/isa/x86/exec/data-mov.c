@@ -58,7 +58,7 @@ make_EHelper(cltd) {
   }
   else {
     rtl_lr(&s0,R_EAX,4);
-    rtl_sari(&s1,&s0,32);
+    rtl_sari(&s1,&s0,31);
     rtl_sr(R_EDX,&s1,4);
   }
 

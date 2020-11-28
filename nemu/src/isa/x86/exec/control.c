@@ -11,7 +11,7 @@ make_EHelper(jmp) {
 make_EHelper(jcc) {
   // the target address is calculated at the decode stage
   uint32_t cc = decinfo.opcode & 0xf;
-  rtl_setcc(&s0, cc);
+  rtl_setcc(&s0, cc); //s0 == 0
   rtl_li(&s1, 0);
   rtl_jrelop(RELOP_NE, &s0, &s1, decinfo.jmp_pc);
 
@@ -20,7 +20,6 @@ make_EHelper(jcc) {
 
 make_EHelper(jmp_rm) {
   rtl_jr(&id_dest->val);
-
   print_asm("jmp *%s", id_dest->str);
 }
 
@@ -43,8 +42,9 @@ make_EHelper(ret_imm) {
   print_asm("ret %s", id_dest->str);
 }
 
+/*this function is used when calling the function pointer*/
 make_EHelper(call_rm) {
-  TODO();
-
+  rtl_push(&decinfo.seq_pc);
+  rtl_j(id_dest->val);
   print_asm("call *%s", id_dest->str);
 }
