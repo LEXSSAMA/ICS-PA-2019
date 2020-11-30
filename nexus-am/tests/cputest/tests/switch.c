@@ -24,6 +24,5 @@ int main() {
 	}
 
 	nemu_assert(i == 15);
-
 	return 0;
 }
