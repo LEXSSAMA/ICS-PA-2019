@@ -11,6 +11,14 @@ void (*ref_difftest_exec)(uint64_t n) = NULL;
 static bool is_skip_ref = false;
 static int skip_dut_nr_instr = 0;
 static bool is_detach = false;
+extern const char* regsl[];
+void printf_reg(CPU_state* ref){
+   printf("\033[0;31mReg  QEMU    NEMU\n");
+  for(int i=0;i<8;++i){
+    printf("%s  0x%X  0x%X\n",regsl[i],ref->gpr[i]._32,reg_l(i));
+  }
+  printf("PC  0x%X  0x%X\033[0m\n",ref->pc,cpu.pc);
+}
 
 // this is used to let ref skip instructions which
 // can not produce consistent behavior with NEMU
@@ -83,8 +91,7 @@ void init_difftest(char *ref_so_file, long img_size) {
 
 static void checkregs(CPU_state *ref, vaddr_t pc) {
   if (!isa_difftest_checkregs(ref, pc)) {
-    extern void isa_reg_display(void);
-    isa_reg_display();
+    printf_reg(ref);
     nemu_state.state = NEMU_ABORT;
     nemu_state.halt_pc = pc;
   }

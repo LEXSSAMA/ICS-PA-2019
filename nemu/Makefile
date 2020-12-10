@@ -24,7 +24,7 @@ BUILD_DIR ?= ./build
 ifdef SHARE
 SO = -so
 # -D_SHARE:-Dmacro=defn  相当于 C 语言中的 #define macro=defn
-# -fPIC涉及到动态链接(先放一放)
+# -fPIC:生成位置无关代码
 SO_CFLAGS = -fPIC -D_SHARE=1
 SO_LDLAGS = -shared -fPIC
 endif

@@ -4,7 +4,6 @@
 #include "common.h"
 
 #define PC_START IMAGE_START
-
 enum { R_EAX, R_ECX, R_EDX, R_EBX, R_ESP, R_EBP, R_ESI, R_EDI };
 enum { R_AX, R_CX, R_DX, R_BX, R_SP, R_BP, R_SI, R_DI };
 enum { R_AL, R_CL, R_DL, R_BL, R_AH, R_CH, R_DH, R_BH };
@@ -23,7 +22,7 @@ typedef struct {
       uint16_t _16;
       uint8_t _8[2];
     } gpr[8];
-  //rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;
+  //rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;SSS
   //为什么要把rtlreg_t eax, ecx, edx, ebx, esp, ebp, esi, edi;用匿名结构体包裹起来呢?
   //因为为了匹配上gpr[8]的内存，如果不用struct包裹的话，eax, ecx, edx, ebx, esp, ebp, esi, edi就如一个变量一样只会指向gpr[0]
   // 这里的顺序不能打乱,分别对应gpr[1~8]
@@ -62,7 +61,7 @@ typedef struct {
     };
     uint32_t val;    
   }flags;
-  
+  uint32_t cs, ss, ds, es, fs, gs;
 } CPU_state;
 
 static inline int check_reg_index(int index) {
