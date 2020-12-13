@@ -12,7 +12,7 @@ AM_SRCS := native/trm.c \
 CFLAGS  += -fpie
 ASFLAGS += -fpie -pie
 
-image:
+image: 
 	@echo + LD "->" $(BINARY_REL)
 	@g++ -pie -o $(BINARY) -Wl,--whole-archive $(LINK_FILES) -Wl,-no-whole-archive -lSDL2 -lGL -lrt
 
