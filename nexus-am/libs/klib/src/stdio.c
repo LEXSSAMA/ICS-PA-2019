@@ -9,13 +9,16 @@ void int_to_string(char* dest,int val){
   if(val<0){
     *p++ = '-';
     val = -val;
-  }
-  while(val!=0){
-   tmp[len++] =  (val%10+'0');
-   val/=10;
-  }
-  for(int i=len-1;i>=0;--i){ 
-    *p++ = tmp[i];
+  }else if(val==0){
+    *p++='0';
+  }else{
+    while(val!=0){
+     tmp[len++] =  (val%10+'0');
+     val/=10;
+    }
+    for(int i=len-1;i>=0;--i){ 
+      *p++ = tmp[i];
+    }
   }
   *p = '\0';
   return ;
@@ -73,9 +76,9 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
       int_to_string(str,va_arg(ap,int));
       if(strlen(padstr)!=0){
         p+=int_padd(p,padstr,str);
+        padstr[0]='\0';
       }
       strcat(p,str);
-      padstr[0]='\0';
       p+=strlen(str);
       break;
     case 's':
