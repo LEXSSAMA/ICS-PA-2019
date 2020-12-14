@@ -20,8 +20,44 @@ void int_to_string(char* dest,int val){
   *p = '\0';
   return ;
 }
+int string_to_int(const char* str){
+  int result =0;
+  while(*str!='\0'){
+    assert(*str>='0' && *str<='9');
+    int num = *str-'0';
+    result = result*10+num;
+    str++;
+  }
+  return result;
+}
+int padd(const char* fmt, char* padstr){
+  int len =0;
+  char* str = padstr;
+  while(*fmt!='d'&&*fmt!='s'){
+    *str++ = *fmt++;
+    len++;
+  }
+  *str = '\0';
+  return len;
+}
+int int_padd(char* dest,const char* padstr,const char* dig){
+  char padd_char = *padstr=='0'?'0':' ';
+  int total_len=0;
+  int dig_len = strlen(dig);
+  if(padd_char==' ')
+   total_len= string_to_int(padstr);
+  else
+   total_len= string_to_int(padstr+1);
+  int padd_time = total_len-dig_len;
+  for(int i=0;i<padd_time;++i){
+    *dest++ = padd_char;
+  }
+  *dest = '\0';
+  return (padd_time>0?padd_time:0);
+}
 void _sprintf_internal(char* dest,const char *fmt,va_list ap){
     char str[256];
+    char padstr[20];
     char *p = dest;
     while(*fmt!='\0'){
     if(*fmt!='%'){
@@ -29,12 +65,17 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
       continue;
     }
     fmt++;
+    fmt+=padd(fmt,padstr);
     switch (*fmt)
     {
     case 'd':
       *p = '\0';
       int_to_string(str,va_arg(ap,int));
+      if(strlen(padstr)!=0){
+        p+=int_padd(p,padstr,str);
+      }
       strcat(p,str);
+      padstr[0]='\0';
       p+=strlen(str);
       break;
     case 's':
