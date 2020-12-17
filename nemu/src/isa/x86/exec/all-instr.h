@@ -49,6 +49,8 @@ make_EHelper(cltd);
 make_EHelper(leave);
 make_EHelper(movzx);
 make_EHelper(movsx);
+make_EHelper(movsb);
+make_EHelper(movsl);
 
 //control.c
 make_EHelper(jcc);

@@ -91,6 +91,7 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
       break;
     }
     fmt++;
+    str[0]='\0';
 }
   *p = '\0';
   return ;

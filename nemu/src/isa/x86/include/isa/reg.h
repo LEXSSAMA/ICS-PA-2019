@@ -61,7 +61,7 @@ typedef struct {
     };
     uint32_t val;    
   }flags;
-  uint32_t cs, ss, ds, es, fs, gs;
+
 } CPU_state;
 
 static inline int check_reg_index(int index) {

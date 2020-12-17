@@ -87,7 +87,29 @@ make_EHelper(movsx) {
   operand_write(id_dest, &s0);
   print_asm_template2(movsx);
 }
-
+make_EHelper(movsb){
+  rtl_lr(&s0,R_ESI,4);
+  rtl_lm(&s1,&s0,4);
+  rtl_sm(&reg_l(R_EDI),&s1,1);
+  reg_l(R_ESI)+=1;
+  reg_l(R_EDI)+=1;
+}
+make_EHelper(movsl){
+ s1 = 4;
+ if(decinfo.isa.is_operand_size_16) {
+   s1 = 2;
+   rtl_lr(&s0,R_ESI,4);
+   rtl_lm(&s0,&s0,4);
+   rtl_sm(&reg_l(R_EDI),&s0,2);
+ }
+ else{
+   rtl_lr(&s0,R_ESI,4);
+   rtl_lm(&s0,&s0,4);
+   rtl_sm(&reg_l(R_EDI),&s0,4);
+ }
+   reg_l(R_ESI)+=s1;
+   reg_l(R_EDI)+=s1;
+}
 make_EHelper(movzx) {
   id_dest->width = decinfo.isa.is_operand_size_16 ? 2 : 4;
   operand_write(id_dest, &id_src->val);

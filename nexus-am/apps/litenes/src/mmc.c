@@ -23,7 +23,6 @@ void mmc_write(word address, byte data) {
 void mmc_copy(word address, byte *source, int length) {
   memcpy(&memory[address], source, length);
 }
-
 void mmc_append_chr_rom_page(byte *source) {
   assert(mmc_chr_pages_number < MMC_MAX_PAGE_COUNT);
   memcpy(&mmc_chr_pages[mmc_chr_pages_number++][0], source, 0x2000);
