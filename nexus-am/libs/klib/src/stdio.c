@@ -2,25 +2,32 @@
 #include <stdarg.h>
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
+void reverse(char* dest,char* src){
+   char* p = dest;
+   int len = strlen(src);
+   for(int i=len-1;i>=0;--i){
+     *p++=src[i];
+   }
+   *p='\0';
+   return;
+}
 void int_to_string(char* dest,int val){
   int len =0;
-  char* p =dest;
   char tmp[30];
+  char* p = dest;
   if(val<0){
     *p++ = '-';
     val = -val;
   }else if(val==0){
     *p++='0';
-  }else{
-    while(val!=0){
-     tmp[len++] =  (val%10+'0');
-     val/=10;
-    }
-    for(int i=len-1;i>=0;--i){ 
-      *p++ = tmp[i];
-    }
   }
+  while(val!=0){
+   tmp[len++] =  (val%10+'0');
+   val/=10;
+  }
+  tmp[len]='\0';
   *p = '\0';
+  reverse(p,tmp);
   return ;
 }
 int string_to_int(const char* str){
@@ -33,10 +40,32 @@ int string_to_int(const char* str){
   }
   return result;
 }
+char num_to_hex(int num){
+  assert(num<16);
+    if(num<10)
+      return num+'0';
+    else
+      return (num-10)+'a';
+}
+void addr_to_hex_string(char* str,uint32_t addr){
+  char tmp[30];
+  int len =0;
+  if(addr!=0){
+    while(addr!=0){
+      tmp[len++]=num_to_hex(addr%16);
+      addr/=16;
+    }
+  }else{
+    tmp[len++]='0';
+  }
+  tmp[len]='\0';
+  reverse(str,tmp);
+  return;
+}
 int padd(const char* fmt, char* padstr){
   int len =0;
   char* str = padstr;
-  while(*fmt!='d'&&*fmt!='s'){
+  while(*fmt!='d'&&*fmt!='s'&&*fmt!='p'){
     *str++ = *fmt++;
     len++;
   }
@@ -61,8 +90,10 @@ int int_padd(char* dest,const char* padstr,const char* dig){
 void _sprintf_internal(char* dest,const char *fmt,va_list ap){
     char str[256];
     char padstr[20];
+    padstr[0]='\0';
     char *p = dest;
     while(*fmt!='\0'){
+      *p='\0';
     if(*fmt!='%'){
       *p++ = *fmt++;
       continue;
@@ -72,7 +103,6 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
     switch (*fmt)
     {
     case 'd':
-      *p = '\0';
       int_to_string(str,va_arg(ap,int));
       if(strlen(padstr)!=0){
         p+=int_padd(p,padstr,str);
@@ -82,11 +112,15 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
       p+=strlen(str);
       break;
     case 's':
-      *p = '\0';
       strcat(str,va_arg(ap,char*));
       strcat(p,str);
       p+=strlen(str);
       break;
+    case 'p':
+       addr_to_hex_string(str,va_arg(ap,uint32_t));
+       strcat(p,str);
+       p+=strlen(str);
+       break;
     default:
       break;
     }
