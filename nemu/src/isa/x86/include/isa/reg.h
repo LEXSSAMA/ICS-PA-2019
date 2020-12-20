@@ -62,6 +62,11 @@ typedef struct {
     uint32_t val;    
   }flags;
 
+  struct{
+    uint16_t idt_size ;
+    uint32_t idt_addr  ;
+  }IDTR;
+
 } CPU_state;
 
 static inline int check_reg_index(int index) {
