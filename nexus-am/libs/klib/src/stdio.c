@@ -152,11 +152,19 @@ int sprintf(char *out, const char *fmt, ...) {
   va_start(arg,fmt);
   _sprintf_internal(out,fmt,arg);
   va_end(arg);
-  return 0;
+  int len = strlen(out);
+  return len;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
-  return 0;
+  if(n==0||n==1)
+    return n;
+  va_list arg;
+  va_start(arg,fmt);
+  _sprintf_internal(out,fmt,arg);
+  out[n-1]='\0';
+  va_end(arg);
+  return n;
 }
 
 #endif
