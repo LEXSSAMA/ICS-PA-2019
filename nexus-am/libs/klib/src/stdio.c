@@ -65,7 +65,7 @@ void addr_to_hex_string(char* str,uint32_t addr){
 int padd(const char* fmt, char* padstr){
   int len =0;
   char* str = padstr;
-  while(*fmt!='d'&&*fmt!='s'&&*fmt!='p'){
+  while(*fmt!='d'&&*fmt!='s'&&*fmt!='p'&&*fmt!='x'){
     *str++ = *fmt++;
     len++;
   }
@@ -117,6 +117,7 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
       p+=strlen(str);
       break;
     case 'p':
+    case 'x':
        addr_to_hex_string(str,va_arg(ap,uint32_t));
        strcat(p,str);
        p+=strlen(str);
@@ -132,6 +133,7 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
 }
 int printf(const char *fmt, ...) {
   char buf[256];
+  buf[0]='\0';
   va_list arg;
   va_start(arg,fmt);
   _sprintf_internal(buf,fmt,arg);

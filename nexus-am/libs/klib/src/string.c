@@ -45,7 +45,13 @@ int strncmp(const char* s1, const char* s2, size_t n) {
 }
 
 void* memset(void* v,int c,size_t n) {
-  return NULL;
+  if(v==NULL) return NULL;
+  unsigned char* p = (unsigned char*)v;
+  while(n){
+   *p = c; 
+    n--;
+  }
+  return v;
 }
 
 void* memcpy(void* out, const void* in, size_t n) {

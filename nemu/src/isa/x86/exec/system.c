@@ -24,21 +24,19 @@ make_EHelper(mov_cr2r) {
 }
 
 make_EHelper(int) {
-  Assert(id_dest->val*8<cpu.IDTR.idt_size,"intd %s Error: Overflow IDT table size !",id_dest->str);
-  s0 = id_dest->val*8+cpu.IDTR.idt_addr;
-  s1 = id_dest->val*8+cpu.IDTR.idt_addr+4;
-  rtl_lm(&s0,&s0,4);
-  rtl_lm(&s1,&s1,4);
-  Assert((s1&0x00008000)!=0,"intd %s Error: The offset p equal to 0",id_dest->str);
-  cpu.pc = (s0&0xffff)|(s1&0xffff0000);
+  extern void raise_intr(uint32_t NO, vaddr_t ret_addr);
+  rtl_push(&cpu.flags.val);
+  rtl_push(&cpu.cs);
+  rtl_push(&decinfo.seq_pc);
+  raise_intr(id_dest->val,cpu.IDTR.idt_addr);
   print_asm("intd %s", id_dest->str);
-
   difftest_skip_dut(1, 2);
 }
 
 make_EHelper(iret) {
-  TODO();
-
+  rtl_pop(&decinfo.seq_pc);
+  rtl_pop(&cpu.cs);
+  rtl_pop(&cpu.flags.val);
   print_asm("iret");
 }
 

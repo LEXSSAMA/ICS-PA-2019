@@ -8,7 +8,7 @@ __am_asm_trap:
   pushal
 
   pushl $0
-
+#this instruction is used to pass argument that is a pointer of _Context struct 
   pushl %esp
   call __am_irq_handle
 
