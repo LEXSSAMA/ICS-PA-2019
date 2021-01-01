@@ -1,5 +1,8 @@
 #include "common.h"
 #include "syscall.h"
+extern char _end,_heap_end;
+static uint32_t program_break = (uint32_t)&_end;
+static uint32_t heap_end = (uint32_t)&_heap_end;
 extern size_t fs_write(int fd,const void* buf,size_t len);
 int sys_write(int fd,void* buf,size_t count){
   return fs_write(fd,buf,count);
