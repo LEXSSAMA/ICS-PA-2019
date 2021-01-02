@@ -14,7 +14,6 @@ typedef struct {
 } Finfo;
 
 enum {FD_STDIN, FD_STDOUT, FD_STDERR, FD_FB};
-int file_num = 0;
 
 size_t invalid_read(void *buf, size_t offset, size_t len) {
   panic("should not reach here");
@@ -33,10 +32,10 @@ size_t invalid_write(const void *buf, size_t offset, size_t len) {
 }
 
 size_t file_write(const void *buf,size_t offset,size_t len){
-  return 0;
+  return ramdisk_write(buf,offset,len);
 }
 size_t file_read(void *buf,size_t offset,size_t len){
-  return 0;
+  return ramdisk_read(buf,offset,len);
 }
 /* This is the information about all files in disk. */
 static Finfo file_table[] __attribute__((used)) = {
@@ -47,25 +46,69 @@ static Finfo file_table[] __attribute__((used)) = {
 };
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
-
+//for debug
+void printf_file_table(){
+  for(int i=0;i<NR_FILES;i++){
+    printf("name=%s,size=%d,disk_offset=%d,open_offset=%d\n",file_table[i].name,file_table[i].size,
+            file_table[i].disk_offset,file_table[i].open_offset);
+  }
+}
 void init_fs() {
-  file_num = sizeof(file_table)/sizeof(Finfo);
+  for (size_t i = 3; i < NR_FILES; i++)
+  {
+    file_table[i].open_offset=0;
+    file_table[i].read = file_read;
+    file_table[i].write = file_write;
+  }
   // TODO: initialize the size of /dev/fb
 }
 int fs_open(const char* pathname,int flags,int mode){
-  for(int i=0;i<file_num;++i){
+  for(int i=0;i<NR_FILES;++i){
       if(strcmp(pathname,file_table[i].name)==0)
           return i;
   }
+	panic("The pathname: [%s] don't exist!", pathname);
   return -1;
 }
 int fs_read(int fd, void *buf,int len){
-  return 0;
+  assert(fd<NR_FILES);
+  assert(buf!=NULL);
+  assert(file_table[fd].open_offset+len<file_table[fd].size);
+  file_table[fd].read(buf,file_table[fd].open_offset+file_table[fd].disk_offset,len);
+  file_table[fd].open_offset+=len;
+  return len;
 }
 int fs_write(int fd,const void* buf,int len){
-  assert(fd<file_num&&buf!=NULL);
-  return file_table[fd].write(buf,file_table[fd].open_offset,len);
+  if(fd!=FD_FB)
+  return file_table[fd].write(buf,file_table[fd].open_offset+file_table[fd].disk_offset,len);
+  assert(fd<NR_FILES);
+  assert(buf!=NULL);
+  assert(file_table[fd].open_offset+len<file_table[fd].size);
+  file_table[fd].write(buf,file_table[fd].open_offset+file_table[fd].disk_offset,len);
+  file_table[fd].open_offset+=len;
+  return len;
 }
 int fs_lseek(int fd,int offset,int whence){
+  assert(fd<NR_FILES);
+  switch (whence)
+  {
+  case SEEK_CUR:
+    assert(file_table[fd].open_offset+offset<file_table[fd].size);
+    file_table[fd].open_offset+=offset;
+    break;
+  case SEEK_END:
+    assert(offset<=0);
+    file_table[fd].open_offset=file_table[fd].size+offset;
+  case SEEK_SET:
+    assert(offset<=file_table[fd].size);
+    file_table[fd].open_offset=offset;
+    break;
+  default :
+    panic("The whence %d don't exist!\n",whence);
+    break;
+  }
+  return 0;
+}
+int fs_close(int fd){
   return 0;
 }
