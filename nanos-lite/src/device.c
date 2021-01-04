@@ -1,8 +1,17 @@
 #include "common.h"
 #include <amdev.h>
 
+#ifndef KEYDOWN_MASK
+#define KEYDOWN_MASK 0x8000
+#endif
+
 size_t serial_write(const void *buf, size_t offset, size_t len) {
-  return 0;
+  assert(buf!=NULL);
+  const char* p =(const char*)buf;
+  for(int i=0;i<len;++i){
+    _putc(p[i]);
+  }
+  return len;
 }
 
 #define NAME(key) \
@@ -14,7 +23,21 @@ static const char *keyname[256] __attribute__((used)) = {
 };
 
 size_t events_read(void *buf, size_t offset, size_t len) {
-  return 0;
+  assert(buf!=NULL);
+  int key = read_key();
+  if(key==_KEY_NONE){
+    sprintf(buf,"t %u\n",uptime());
+  }
+  else{
+    if(key&KEYDOWN_MASK){
+      key ^= KEYDOWN_MASK;
+      sprintf(buf,"kd %s\n",keyname[key]);
+    }
+    else{
+      sprintf(buf,"ku %s\n",keyname[key]);
+    }
+  }
+  return strlen(buf);
 }
 
 static char dispinfo[128] __attribute__((used)) = {};

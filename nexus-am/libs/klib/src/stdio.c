@@ -11,6 +11,7 @@ void reverse(char* dest,char* src){
    *p='\0';
    return;
 }
+
 void int_to_string(char* dest,int val){
   int len =0;
   char tmp[30];
@@ -19,6 +20,23 @@ void int_to_string(char* dest,int val){
     *p++ = '-';
     val = -val;
   }else if(val==0){
+    *p++='0';
+  }
+  while(val!=0){
+   tmp[len++] =  (val%10+'0');
+   val/=10;
+  }
+  tmp[len]='\0';
+  *p = '\0';
+  reverse(p,tmp);
+  return ;
+}
+
+void uint_to_string(char* dest,uint32_t val){
+  int len =0;
+  char tmp[30];
+  char* p = dest;
+  if(val==0){
     *p++='0';
   }
   while(val!=0){
@@ -65,7 +83,7 @@ void addr_to_hex_string(char* str,uint32_t addr){
 int padd(const char* fmt, char* padstr){
   int len =0;
   char* str = padstr;
-  while(*fmt!='d'&&*fmt!='s'&&*fmt!='p'&&*fmt!='x'){
+  while(*fmt!='d'&&*fmt!='s'&&*fmt!='p'&&*fmt!='x'&&*fmt!='u'){
     *str++ = *fmt++;
     len++;
   }
@@ -103,7 +121,11 @@ void _sprintf_internal(char* dest,const char *fmt,va_list ap){
     switch (*fmt)
     {
     case 'd':
+    case 'u':
+      if(*fmt=='d')
       int_to_string(str,va_arg(ap,int));
+      else
+      uint_to_string(str,va_arg(ap,uint32_t));
       if(strlen(padstr)!=0){
         p+=int_padd(p,padstr,str);
         padstr[0]='\0';

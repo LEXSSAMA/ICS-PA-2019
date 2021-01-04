@@ -4,16 +4,11 @@ extern char _end,_heap_end;
 static uint32_t program_break = (uint32_t)&_end;
 static uint32_t heap_end = (uint32_t)&_heap_end;
 extern size_t fs_write(int fd,const void* buf,size_t len);
-int sys_write(int fd,void* buf,size_t count){
-  return fs_write(fd,buf,count);
-}
-int sys_yield(){
-  _yield();
-  return 0;
-}
-int sys_halt(int code){
-  _halt(code);
-}
+extern size_t fs_read(int fd,const void* buf,size_t len);
+extern int fs_open(const char* pathname,int flags,int mode);
+extern int fs_close(int fd);
+extern int fs_lseek(int fd,int offset,int whence);
+
 uint32_t sys_brk(intptr_t increment){
     uint32_t prev_program_break = program_break;
     if(program_break+increment>=heap_end)
@@ -29,10 +24,14 @@ _Context* do_syscall(_Context *c) {
   a[3] = c->GPR4;
 
   switch (a[0]) {
-    case SYS_yield: c->GPRx=sys_yield(); break;
-    case SYS_exit:  sys_halt(c->GPRx);  break;
-    case SYS_write: c->GPRx=sys_write(a[1],(void*)a[2],a[3]); break;
+    case SYS_yield: _yield(); break;
+    case SYS_exit:  _halt(c->GPRx);  break;
+    case SYS_write: c->GPRx=fs_write(a[1],(void*)a[2],a[3]); break;
     case SYS_brk:   c->GPRx=sys_brk(a[1]); break;
+    case SYS_read:  c->GPRx=fs_read(a[1],(void*)a[2],a[3]); break;
+    case SYS_open:  c->GPRx=fs_open((const char*)a[1],a[2],a[3]); break;
+    case SYS_close: c->GPRx=fs_close(a[1]); break;
+    case SYS_lseek: c->GPRx=fs_lseek(a[1],a[2],a[3]);break;
     default: panic("Unhandled syscall ID = %d\n", a[0]);
   }
   return c;
