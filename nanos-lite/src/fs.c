@@ -6,6 +6,10 @@ extern size_t ramdisk_write(const void *buf, size_t offset, size_t len);
 extern size_t ramdisk_read(void *buf, size_t offset, size_t len);
 extern size_t serial_write(const void *buf, size_t offset, size_t len); 
 extern size_t events_read(void *buf, size_t offset, size_t len);
+extern size_t fb_write(const void *buf, size_t offset, size_t len);
+extern size_t fbsync_write(const void *buf, size_t offset, size_t len);
+extern size_t dispinfo_read(void *buf, size_t offset, size_t len);
+
 typedef struct {
   char *name;
   size_t size;
@@ -40,6 +44,9 @@ static Finfo file_table[] __attribute__((used)) = {
   {"stderr", 0, 0, 0, invalid_read, serial_write},
 #include "files.h"
   {"/dev/events",0,0,0,events_read,invalid_write},
+  {"/dev/fb",0,0,0,invalid_read,fb_write},
+  {"/proc/dispinfo",0,0,0,dispinfo_read,invalid_write},
+  {"/dev/fbsync",0,0,0,invalid_read,fbsync_write},
 };
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
@@ -60,6 +67,9 @@ void init_fs() {
     file_table[i].read = file_read;
     if(file_table[i].write==NULL)
     file_table[i].write = file_write;
+    if(strcmp(file_table[i].name,"/dev/fb")==0){
+      file_table[i].size=sizeof(uint32_t)*screen_width()*screen_height();
+    }
   }
   // TODO: initialize the size of /dev/fb
 }
@@ -110,14 +120,11 @@ int fs_lseek(int fd,int offset,int whence){
   switch (whence)
   {
   case SEEK_CUR:
-    assert(file_table[fd].open_offset+offset<=file_table[fd].size);
     file_table[fd].open_offset+=offset;
     break;
   case SEEK_END:
-    assert(offset<=0);
     file_table[fd].open_offset=file_table[fd].size+offset;
   case SEEK_SET:
-    assert(offset<=file_table[fd].size);
     file_table[fd].open_offset=offset;
     break;
   default :
