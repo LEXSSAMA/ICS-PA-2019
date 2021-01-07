@@ -2,160 +2,142 @@
 #include <stdarg.h>
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
-void reverse(char* dest,char* src){
-   char* p = dest;
-   int len = strlen(src);
-   for(int i=len-1;i>=0;--i){
-     *p++=src[i];
-   }
-   *p='\0';
-   return;
-}
-
-void int_to_string(char* dest,int val){
-  int len =0;
-  char tmp[30];
-  char* p = dest;
-  if(val<0){
-    *p++ = '-';
-    val = -val;
-  }else if(val==0){
-    *p++='0';
-  }
-  while(val!=0){
-   tmp[len++] =  (val%10+'0');
-   val/=10;
-  }
-  tmp[len]='\0';
-  *p = '\0';
-  reverse(p,tmp);
-  return ;
-}
-
-void uint_to_string(char* dest,uint32_t val){
-  int len =0;
-  char tmp[30];
-  char* p = dest;
-  if(val==0){
-    *p++='0';
-  }
-  while(val!=0){
-   tmp[len++] =  (val%10+'0');
-   val/=10;
-  }
-  tmp[len]='\0';
-  *p = '\0';
-  reverse(p,tmp);
-  return ;
-}
-int string_to_int(const char* str){
-  int result =0;
+void debug(char* str){
   while(*str!='\0'){
-    assert(*str>='0' && *str<='9');
-    int num = *str-'0';
-    result = result*10+num;
-    str++;
+    _putc(*str++);
   }
-  return result;
 }
-char num_to_hex(int num){
-  assert(num<16);
-    if(num<10)
-      return num+'0';
-    else
-      return (num-10)+'a';
-}
-void addr_to_hex_string(char* str,uint32_t addr){
-  char tmp[30];
-  int len =0;
-  if(addr!=0){
-    while(addr!=0){
-      tmp[len++]=num_to_hex(addr%16);
-      addr/=16;
-    }
-  }else{
-    tmp[len++]='0';
+
+int pasteNum (char* dest , uint32_t num ,int length , int base,int negflag){
+  char* str = dest;
+  int digitalLength = 0;
+  do{
+      uint32_t digital = num%base;
+      num/=base;
+      digitalLength++;
+      if(digital>=10){
+        *str++ = digital-10 + 'a';
+      }else{
+        *str++ = digital + '0';
+      }
   }
-  tmp[len]='\0';
-  reverse(str,tmp);
-  return;
-}
-int padd(const char* fmt, char* padstr){
-  int len =0;
-  char* str = padstr;
-  while(*fmt!='d'&&*fmt!='s'&&*fmt!='p'&&*fmt!='x'&&*fmt!='u'){
-    *str++ = *fmt++;
-    len++;
+  while(num!=0);
+
+  if(negflag){
+    *str++ = '-';
+    digitalLength++;
+  }
+
+  while(digitalLength<length){
+    *str++ = '0';
+    digitalLength++;
   }
   *str = '\0';
-  return len;
-}
-int int_padd(char* dest,const char* padstr,const char* dig){
-  char padd_char = *padstr=='0'?'0':' ';
-  int total_len=0;
-  int dig_len = strlen(dig);
-  if(padd_char==' ')
-   total_len= string_to_int(padstr);
-  else
-   total_len= string_to_int(padstr+1);
-  int padd_time = total_len-dig_len;
-  for(int i=0;i<padd_time;++i){
-    *dest++ = padd_char;
+  for(int i=0;i<digitalLength/2;++i){
+    char tmp = dest[digitalLength-i-1];
+    dest[digitalLength-i-1]=dest[i];
+    dest[i]=tmp;
   }
-  *dest = '\0';
-  return (padd_time>0?padd_time:0);
+  return digitalLength;
 }
+
+int pasteString(char* dest,char* src,int length){
+  int src_length = strlen(src);
+  while(src_length<length){
+    *dest++ =' ';
+    src_length++;
+  }
+  *dest='\0';
+  strcat(dest,src);
+  return src_length;
+}
+
+int pasteChar(char* dest,char src,int length){
+    if(length<=1){
+        *dest = src;
+        return 1;
+    }
+    for(int i=0;i<length-1;++i){
+      *dest++ = ' ';
+    }
+    *dest++ = src;
+    return length;
+}
+
+int isDigital(const char* fmt)
+{
+  int num = *fmt-'0';
+  if(num>=0&&num<=9)
+    return 1;
+  return 0;
+}
+
+int charToNum(const char* fmt) {
+    return *fmt-'0';
+}
+
 void _sprintf_internal(char* dest,const char *fmt,va_list ap){
-    char str[256];
-    char padstr[20];
-    padstr[0]='\0';
-    char *p = dest;
-    while(*fmt!='\0'){
-      *p='\0';
-    if(*fmt!='%'){
-      *p++ = *fmt++;
-      continue;
-    }
+  char* str = dest;
+  char character ;
+  while(*fmt!='\0'){
+    *str = '\0';
+  int negflag = 0;
+  int strLength = 0;
+  int signedNum = 0;
+
+  if(*fmt!='%'){
+    *str++ = *fmt++;
+    continue;
+  }
+
+  fmt++;
+
+  while(isDigital(fmt)){
+    strLength = strLength*10 + charToNum(fmt);
     fmt++;
-    fmt+=padd(fmt,padstr);
-    switch (*fmt)
-    {
-    case 'd':
-    case 'u':
-      if(*fmt=='d')
-      int_to_string(str,va_arg(ap,int));
-      else
-      uint_to_string(str,va_arg(ap,uint32_t));
-      if(strlen(padstr)!=0){
-        p+=int_padd(p,padstr,str);
-        padstr[0]='\0';
-      }
-      strcat(p,str);
-      p+=strlen(str);
-      break;
-    case 's':
-      strcat(str,va_arg(ap,char*));
-      strcat(p,str);
-      p+=strlen(str);
-      break;
-    case 'p':
-    case 'x':
-       addr_to_hex_string(str,va_arg(ap,uint32_t));
-       strcat(p,str);
-       p+=strlen(str);
-       break;
-    default:
-      break;
-    }
-    fmt++;
-    str[0]='\0';
+  }
+  switch (*fmt){
+    case 'd' :
+              signedNum = va_arg(ap,int);
+              if(signedNum<0){
+                signedNum = -signedNum;
+                negflag = 1;
+              }
+              else
+                negflag = 0;
+              str += pasteNum(str,signedNum,strLength,10,negflag);
+              break;
+    case 'u' :
+              str += pasteNum(str,va_arg(ap,uint32_t),strLength,10,0);
+              break;
+    case 'p' :
+              *str++ = '0';
+              *str++ = 'x';
+              str += pasteNum(str,va_arg(ap,uint32_t),strLength,16,0);
+              break;
+    case 'x' :
+              str += pasteNum(str,va_arg(ap,uint32_t),strLength,16,0);
+              break;
+    case 's' :
+              str += pasteString(str,va_arg(ap,char*),strLength);
+              break;
+    case 'c' :
+              character = (char)va_arg(ap,int);
+              str += pasteChar(str,character,strLength);
+              break;
+    default: 
+            break;
+  }
+
+  fmt++;
 }
-  *p = '\0';
+  *str = '\0';
   return ;
 }
+
+
 int printf(const char *fmt, ...) {
   char buf[256];
-  buf[0]='\0';
   va_list arg;
   va_start(arg,fmt);
   _sprintf_internal(buf,fmt,arg);
@@ -167,9 +149,11 @@ int printf(const char *fmt, ...) {
   return 0;
 }
 
+
 int vsprintf(char *out, const char *fmt, va_list ap) {
   return 0;
 }
+
 
 int sprintf(char *out, const char *fmt, ...) {
   va_list  arg ;

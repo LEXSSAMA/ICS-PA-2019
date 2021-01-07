@@ -100,7 +100,6 @@ int NDL_WaitEvent(NDL_Event *event) {
       assert(p - buf < sizeof(buf));
       if (ch == '\n') break;
     }
-
     if (buf[0] == 'k') {
       char keyname[32];
       event->type = buf[1] == 'd' ? NDL_EVENT_KEYDOWN : NDL_EVENT_KEYUP;

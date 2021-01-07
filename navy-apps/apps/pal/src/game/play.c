@@ -529,7 +529,6 @@ PAL_StartFrame(
 
    if (g_InputState.dwKeyPress & kKeyMenu)
    {
-      //
       // Show the in-game menu
       //
       PAL_InGameMenu();

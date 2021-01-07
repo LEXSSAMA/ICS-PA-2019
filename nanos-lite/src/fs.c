@@ -98,9 +98,6 @@ int fs_read(int fd, void *buf,int len){
 }
 
 int fs_write(int fd,const void* buf,int len){
-  if(fd!=FD_FB)
-  return file_table[fd].write(buf,file_table[fd].open_offset+file_table[fd].disk_offset,len);
-  else{
   assert(fd<NR_FILES);
   assert(buf!=NULL);
   int length = 0;
@@ -112,7 +109,6 @@ int fs_write(int fd,const void* buf,int len){
   length=file_table[fd].write(buf,file_table[fd].open_offset+file_table[fd].disk_offset,len);
   file_table[fd].open_offset+=length;
   return length;
-  }
 }
 
 int fs_lseek(int fd,int offset,int whence){
