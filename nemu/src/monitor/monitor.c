@@ -11,7 +11,7 @@ void init_difftest(char *ref_so_file, long img_size);
 
 static char *mainargs = "";
 static char *log_file =NULL;
-static char *diff_so_file = NULL;
+static char *diff_so_file = "";
 static char *img_file = NULL;
 static int is_batch_mode = false;
 
