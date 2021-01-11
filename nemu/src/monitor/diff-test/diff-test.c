@@ -11,13 +11,14 @@ void (*ref_difftest_exec)(uint64_t n) = NULL;
 static bool is_skip_ref = false;
 static int skip_dut_nr_instr = 0;
 static bool is_detach = false;
+
 extern const char* regsl[];
 void printf_reg(CPU_state* ref){
-   printf("\033[0;31mReg  QEMU    NEMU\n");
+   printf("\033[0;31mReg  QEMU        NEMU\n");
   for(int i=0;i<8;++i){
-    printf("%s  0x%X  0x%X\n",regsl[i],ref->gpr[i]._32,reg_l(i));
+    printf("%s  0x%08X  0x%08X\n",regsl[i],ref->gpr[i]._32,reg_l(i));
   }
-  printf("PC  0x%X  0x%X\033[0m\n",ref->pc,cpu.pc);
+  printf("PC   0x%08X  0x%08X\033[0m\n",ref->pc,cpu.pc);
 }
 
 // this is used to let ref skip instructions which

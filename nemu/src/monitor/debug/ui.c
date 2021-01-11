@@ -12,6 +12,8 @@ void isa_reg_display();
 WP* new_wp();
 bool free_wp(int NO);
 void watchpoints_display();
+void difftest_detach();
+void difftest_attach();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -158,6 +160,14 @@ static int cmd_x(char *args)
     }
   return 0;
 }
+static int cmd_detach(){
+  difftest_detach();
+  return 0;
+}
+static int cmd_attach(){
+  difftest_attach();
+  return 0;
+}
 static int cmd_help(char *args);
 
 static struct {
@@ -173,7 +183,9 @@ static struct {
   { "p","p [EXPR] : find the value of expression EXPR , for example : p $eax+1",cmd_p},
   { "x","x [N] [EXPR] : find the value of expression EXPR and use the result as the starting memory Address, output consecutive [N] 4 bytes in hexadecimal form. For example : x 10 0x100000",cmd_x},
   { "w","w [EXPR] : Stop run program When value of the EXPR change",cmd_w},
-  { "d","d [N] : delete number [N] monitor pointer",cmd_d}
+  { "d","d [N] : delete number [N] monitor pointer",cmd_d},
+  { "detach","Exit DiffTest mode",cmd_detach},
+  { "attach","Get in to DiffTest mode",cmd_attach}
   /* TODO: Add more commands */
 
 };
