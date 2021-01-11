@@ -168,6 +168,30 @@ static int cmd_attach(){
   difftest_attach();
   return 0;
 }
+static int cmd_save(){
+  char* path = strtok(NULL," ");
+  if(path==NULL){
+    printf("\033[0;33mPlease input the saved path\033[0m\n!");
+    return 0;
+  }
+  FILE* fp = fopen(path,"w");
+  fwrite(&cpu,sizeof(cpu),1,fp);
+  fwrite(pmem,PMEM_SIZE,1,fp);
+  fclose(fp);
+  return 0;
+}
+static int cmd_load(){
+  char* path = strtok(NULL," ");
+  if(path==NULL){
+    printf("\033[0;33mPlease input the loaded path\033[0m\n!");
+    return 0;
+  }
+  FILE* fp = fopen(path,"r");
+  fread(&cpu,sizeof(cpu),1,fp);
+  fread(pmem,PMEM_SIZE,1,fp);
+  fclose(fp);
+  return 0;
+}
 static int cmd_help(char *args);
 
 static struct {
@@ -185,7 +209,9 @@ static struct {
   { "w","w [EXPR] : Stop run program When value of the EXPR change",cmd_w},
   { "d","d [N] : delete number [N] monitor pointer",cmd_d},
   { "detach","Exit DiffTest mode",cmd_detach},
-  { "attach","Get in to DiffTest mode",cmd_attach}
+  { "attach","Get in to DiffTest mode",cmd_attach},
+  { "save","save [path]: save NEMU status to path you specify",cmd_save},
+  { "load","load [path]: load NEMU status from the path you specify",cmd_load}
   /* TODO: Add more commands */
 
 };
