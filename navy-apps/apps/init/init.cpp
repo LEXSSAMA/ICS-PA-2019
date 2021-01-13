@@ -78,7 +78,6 @@ int main(int argc, char *argv[], char *envp[]) {
   font = new Font(font_fname);
   NDL_LoadBitmap(&logo, "/share/pictures/projectn.bmp");
   set_i_max();
-
   while (1) {
     display_menu(i_max);
 
@@ -145,6 +144,9 @@ static void open_display() {
   }
 
   NDL_OpenDisplay(W, H);
+  while(1){
+    printf("hello world!\n");
+  }
 }
 
 static void clear_display(void) {

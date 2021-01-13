@@ -47,6 +47,7 @@ static Finfo file_table[] __attribute__((used)) = {
   {"/dev/fb",0,0,0,invalid_read,fb_write},
   {"/proc/dispinfo",0,0,0,dispinfo_read,invalid_write},
   {"/dev/fbsync",0,0,0,invalid_read,fbsync_write},
+  {"/dev/tty",0,0,0,invalid_read,serial_write},
 };
 
 #define NR_FILES (sizeof(file_table) / sizeof(file_table[0]))
@@ -98,10 +99,9 @@ int fs_read(int fd, void *buf,int len){
 }
 
 int fs_write(int fd,const void* buf,int len){
-  assert(fd<NR_FILES);
+  assert(fd>=0&&fd<NR_FILES);
   assert(buf!=NULL);
   int length = 0;
-
   if(file_table[fd].size>0&&file_table[fd].open_offset+len>file_table[fd].size){
     len = file_table[fd].size - file_table[fd].open_offset;
   }
@@ -131,5 +131,6 @@ int fs_lseek(int fd,int offset,int whence){
 }
 
 int fs_close(int fd){
+  printf("closed filename == %s \n",file_table[fd].name);
   return 0;
 }
