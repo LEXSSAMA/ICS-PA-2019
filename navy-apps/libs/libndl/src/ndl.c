@@ -12,8 +12,7 @@ static void get_display_info();
 static int canvas_w, canvas_h, screen_w, screen_h, pad_x, pad_y;
 
 int NDL_OpenDisplay(int w, int h) {
-
-  if (!canvas) {
+ if (!canvas) {
     NDL_CloseDisplay();
   }
 
@@ -23,6 +22,7 @@ int NDL_OpenDisplay(int w, int h) {
   assert(canvas);
   if (getenv("NWM_APP")) {
     has_nwm = 1;
+  
   } else {
     has_nwm = 0;
   }
@@ -39,11 +39,8 @@ int NDL_OpenDisplay(int w, int h) {
     fbdev = fopen("/dev/fb", "w"); assert(fbdev);
     evtdev = fopen("/dev/events", "r"); assert(evtdev);
     fbsyncdev = fopen("/dev/fbsync", "w"); assert(fbsyncdev);
-    while(1){
-      printf("1111111");
-    }
   }
-
+  
 }
 
 int NDL_CloseDisplay() {
@@ -136,6 +133,7 @@ static void get_display_info() {
   assert(dispinfo);
   screen_w = screen_h = 0;
   char buf[128], key[128], value[128], *delim;
+
   while (fgets(buf, 128, dispinfo)) {
     *(delim = strchr(buf, ':')) = '\0';
     sscanf(buf, "%s", key);
@@ -143,6 +141,7 @@ static void get_display_info() {
     if (strcmp(key, "WIDTH") == 0) sscanf(value, "%d", &screen_w);
     if (strcmp(key, "HEIGHT") == 0) sscanf(value, "%d", &screen_h);
   }
+
   fclose(dispinfo);
   assert(screen_w > 0 && screen_h > 0);
 }

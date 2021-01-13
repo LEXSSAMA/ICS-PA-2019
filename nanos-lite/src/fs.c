@@ -77,14 +77,17 @@ void init_fs() {
 
 int fs_open(const char* pathname,int flags,int mode){
   for(int i=0;i<NR_FILES;++i){
-      if(strcmp(pathname,file_table[i].name)==0)
+      if(strcmp(pathname,file_table[i].name)==0){
+        //set the offset pointer to start of the file when opening a file !
+        file_table[i].open_offset=0;
           return i;
+      }
   }
 	panic("The pathname: [%s] don't exist!", pathname);
   return -1;
 }
 
-int fs_read(int fd, void *buf,int len){
+size_t fs_read(int fd, void *buf,int len){
   assert(fd>=0&&fd<NR_FILES);
   assert(buf!=NULL);
   int length = 0;
@@ -98,7 +101,7 @@ int fs_read(int fd, void *buf,int len){
   return length;
 }
 
-int fs_write(int fd,const void* buf,int len){
+size_t fs_write(int fd,const void* buf,int len){
   assert(fd>=0&&fd<NR_FILES);
   assert(buf!=NULL);
   int length = 0;
@@ -111,7 +114,7 @@ int fs_write(int fd,const void* buf,int len){
   return length;
 }
 
-int fs_lseek(int fd,int offset,int whence){
+size_t fs_lseek(int fd,int offset,int whence){
   assert(fd>=0&&fd<NR_FILES);
   switch (whence)
   {
@@ -120,6 +123,7 @@ int fs_lseek(int fd,int offset,int whence){
     break;
   case SEEK_END:
     file_table[fd].open_offset=file_table[fd].size+offset;
+    break;
   case SEEK_SET:
     file_table[fd].open_offset=offset;
     break;
@@ -127,10 +131,9 @@ int fs_lseek(int fd,int offset,int whence){
     panic("The whence %d don't exist!\n",whence);
     break;
   }
-  return 0;
+  return file_table[fd].open_offset;
 }
 
 int fs_close(int fd){
-  printf("closed filename == %s \n",file_table[fd].name);
   return 0;
 }

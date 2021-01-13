@@ -144,9 +144,6 @@ static void open_display() {
   }
 
   NDL_OpenDisplay(W, H);
-  while(1){
-    printf("hello world!\n");
-  }
 }
 
 static void clear_display(void) {
