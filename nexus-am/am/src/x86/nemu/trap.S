@@ -8,14 +8,18 @@ __am_asm_trap:
   pushal
 
   pushl $0
-#this instruction is used to pass argument that is a pointer of _Context struct 
+# this instruction is used to pass argument that is a pointer of _Context struct 
   pushl %esp
   call __am_irq_handle
 
-  addl $4, %esp
+  movl %eax, %esp
+
+  # addl $4, %esp
 
   addl $4, %esp
+
   popal
+
   addl $4, %esp
 
   iret
