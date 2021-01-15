@@ -120,3 +120,13 @@ make_EHelper(lea) {
   operand_write(id_dest, &id_src->addr);
   print_asm_template2(lea);
 }
+
+make_EHelper(movcr){
+ reg_c(id_dest->reg) = reg_l(id_src->reg) ;
+ print_asm_template2(movcr);
+}
+
+make_EHelper(movrc){
+  reg_l(id_dest->reg) = reg_c(id_src->reg);
+ print_asm_template2(movrc);
+}

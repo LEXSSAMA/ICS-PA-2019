@@ -51,6 +51,8 @@ make_EHelper(movzx);
 make_EHelper(movsx);
 make_EHelper(movsb);
 make_EHelper(movsl);
+make_EHelper(movcr);
+make_EHelper(movrc);
 
 //control.c
 make_EHelper(jcc);

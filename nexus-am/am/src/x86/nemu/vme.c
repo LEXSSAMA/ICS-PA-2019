@@ -5,6 +5,7 @@
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
 
 static PDE kpdirs[NR_PDE] PG_ALIGN = {};
+//The Physical memory can be divided to (PMEM_SIZE + MMIO_SIZE) / PGSIZE pages
 static PTE kptabs[(PMEM_SIZE + MMIO_SIZE) / PGSIZE] PG_ALIGN = {};
 static void* (*pgalloc_usr)(size_t) = NULL;
 static void (*pgfree_usr)(void*) = NULL;
@@ -30,10 +31,12 @@ int _vme_init(void* (*pgalloc_f)(size_t), void (*pgfree_f)(void*)) {
 
   PTE *ptab = kptabs;
   for (i = 0; i < NR_KSEG_MAP; i ++) {
+    //here is calculate how many dir the physical memory used .
+    //(PGSIZE * NR_PTE) Byte represent how many Byte a dir have 
     uint32_t pdir_idx = (uintptr_t)segments[i].start / (PGSIZE * NR_PTE);
     uint32_t pdir_idx_end = (uintptr_t)segments[i].end / (PGSIZE * NR_PTE);
     for (; pdir_idx < pdir_idx_end; pdir_idx ++) {
-      // fill PDE
+      // fill PDE (ptab value will change when finishing a cycle )
       kpdirs[pdir_idx] = (uintptr_t)ptab | PTE_P;
 
       // fill PTE
