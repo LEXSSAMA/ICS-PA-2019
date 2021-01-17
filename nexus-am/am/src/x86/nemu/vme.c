@@ -1,6 +1,7 @@
 #include <am.h>
 #include <x86.h>
 #include <nemu.h>
+#include <klib.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
 
@@ -48,7 +49,6 @@ int _vme_init(void* (*pgalloc_f)(size_t), void (*pgfree_f)(void*)) {
       }
     }
   }
-
   set_cr3(kpdirs);
   set_cr0(get_cr0() | CR0_PG);
   vme_enable = 1;
@@ -57,6 +57,7 @@ int _vme_init(void* (*pgalloc_f)(size_t), void (*pgfree_f)(void*)) {
 }
 
 int _protect(_AddressSpace *as) {
+  // Apply a page memory for PDE
   PDE *updir = (PDE*)(pgalloc_usr(1));
   as->ptr = updir;
   // map kernel space
@@ -83,11 +84,22 @@ void __am_switch(_Context *c) {
 }
 
 int _map(_AddressSpace *as, void *va, void *pa, int prot) {
+  PDE* pdir_base = (PDE*)as->ptr;
+  PTE* ptab_base = NULL;
+  uint32_t vaddr = (uint32_t)va;
+
+  if((pdir_base[PDX(vaddr)] & 0x1) == 0){
+    PDE pdir_entry = (PDE) pgalloc_usr(1) ;
+    pdir_base[PDX(vaddr)] = ROUNDDOWN(pdir_entry,PGSIZE) | PTE_P; 
+    }
+  ptab_base = (PTE*) (pdir_base[PDX(vaddr)] & (~0x3ff));
+  ptab_base[PTX(vaddr)] = ROUNDDOWN(pa,PGSIZE) | PTE_P;
   return 0;
 }
 
 _Context *_ucontext(_AddressSpace *as, _Area ustack, _Area kstack, void *entry, void *args) {
   _Context* uct = (_Context*)(ustack.end-sizeof(_Context)-3*sizeof(uint32_t));
+  uct->as = as;
   uct->eip  = (uintptr_t) entry;
   uct->cs = 8;
   return uct;

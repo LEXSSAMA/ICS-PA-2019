@@ -29,7 +29,7 @@ _Context* do_syscall(_Context *c) {
 
   switch (a[0]) {
     case SYS_yield: _yield(); break;
-    case SYS_exit:   naive_uload(NULL,"/bin/init"); c->GPRx=0; break;
+    case SYS_exit:   _halt(0); c->GPRx=0; break;
     case SYS_execve: naive_uload(NULL,(const char*)a[1]); c->GPRx=0; break;
     case SYS_write: c->GPRx=fs_write(a[1],(void*)a[2],a[3]); break;
     case SYS_brk:   c->GPRx=sys_brk(a[1]); break;
