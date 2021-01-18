@@ -61,6 +61,8 @@ int _protect(_AddressSpace *as) {
   PDE *updir = (PDE*)(pgalloc_usr(1));
   as->ptr = updir;
   // map kernel space
+  /*code of AM , navy and nanos is kernel code start at 0x100000 as Kernel code , user process is start at 0x40000000 , 
+  if this code does not exist (mean: Don't map kernel code), The error will occur when eip pointer to kernel code*/
   for (int i = 0; i < NR_PDE; i ++) {
     updir[i] = kpdirs[i];
   }
@@ -90,10 +92,14 @@ int _map(_AddressSpace *as, void *va, void *pa, int prot) {
 
   if((pdir_base[PDX(vaddr)] & 0x1) == 0){
     PDE pdir_entry = (PDE) pgalloc_usr(1) ;
-    pdir_base[PDX(vaddr)] = ROUNDDOWN(pdir_entry,PGSIZE) | PTE_P; 
+    pdir_base[PDX(vaddr)] = ROUNDDOWN(pdir_entry,PGSIZE) | prot; 
     }
   ptab_base = (PTE*) (pdir_base[PDX(vaddr)] & (~0x3ff));
-  ptab_base[PTX(vaddr)] = ROUNDDOWN(pa,PGSIZE) | PTE_P;
+  ptab_base[PTX(vaddr)] = ROUNDDOWN(pa,PGSIZE) | prot;
+  // if((uint32_t)va==0x4001a000){
+  // printf("dir_base ==0x%x \nptab_base == 0x%x\nptab_entry==0x%x\nptab_entry_context == 0x%x\n"
+  // ,pdir_base,ptab_base,&ptab_base[PTX(vaddr)],ptab_base[PTX(vaddr)]);
+  // }
   return 0;
 }
 

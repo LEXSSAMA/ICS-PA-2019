@@ -27,18 +27,30 @@ paddr_t page_translate(vaddr_t addr){
     PDE dir_base = (PDE) cpu.cr[3];
     PDE dir_entry = PTE_ADDR(dir_base) + PDX(addr)*4;
     PDE dir_entry_context = paddr_read(dir_entry,4);
-    Assert(dir_entry_context&0x1,"The dir_entry (%d) don't exit !\n",PDX(addr));
+    Assert(dir_entry_context&PTE_P,"The dir_entry (%d) don't exit ! , vaddr == 0x%x\n",PDX(addr),addr);
     PTE ptab_base =  ROUNDDOWN(dir_entry_context,PGSIZE);
     PTE ptab_entry = ptab_base + PTX(addr)*4;
     PTE ptab_entry_context = (PTE) paddr_read(ptab_entry,4);
-    Assert((ptab_entry_context&0x1)==1,"The page table entry (%d) don't exit !\n",PTX(addr));
+    // if(addr>=0x4001a000&&addr<=0x4001afff){
+    //     printf("vaddr==0x%x\ndir_base==0x%x\ndir_entry==0x%x\ndir_entry_context==0x%x\nptab_base==0x%x\nptab_entry==0x%x\nptab_entry_context==0x%x\n",
+    //     addr,dir_base,dir_entry,dir_entry_context,ptab_base,ptab_entry,ptab_entry_context);
+    //     printf("----------------------\n");
+    // }
+    // Assert(ptab_entry_context&PTE_P,"The page table entry (%d) don't exit !\ndir_base == 0x%x\nvaddr == 0x%x\nphy_addr == 0x%x\nptab_base ==0x%x\nptab_entry==0x%x\ndir_entry_context == 0x%x\nptab_entry_context==0x%x\n"
+    Assert(ptab_entry_context&PTE_P,"The page table entry (%d) don't exit !\n",PTX(addr));
     return PTE_ADDR(ptab_entry_context) | OFF(addr);
 }
 
 uint32_t isa_vaddr_read(vaddr_t addr, int len) {
-    if (0) {
+    //In this situation , We need to read two time Then splicing data together
+    if (OFF(addr)+len>PGSIZE) {
         /* this is a special case, you can handle it later. */
-        assert(0);
+        int byte_num = PGSIZE-OFF(addr);
+        paddr_t paddr = page_translate(addr);
+        uint32_t data = paddr_read(paddr,byte_num);
+        paddr = page_translate(ROUNDUP(addr,PGSIZE));
+        uint32_t data1 = paddr_read(paddr,(len-byte_num));
+        return data|(data1<<(byte_num*8));
     }
     else {
         paddr_t paddr = page_translate(addr);
@@ -47,7 +59,7 @@ uint32_t isa_vaddr_read(vaddr_t addr, int len) {
 }
 
 void isa_vaddr_write(vaddr_t addr, uint32_t data, int len) {
-    if (0) {
+    if (OFF(addr)+len>PGSIZE) {
         /* this is a special case, you can handle it later. */
         assert(0);
     }

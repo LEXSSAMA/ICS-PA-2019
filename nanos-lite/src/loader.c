@@ -11,26 +11,6 @@
 #endif
 #define MIN(x,y) (x>y)?y:x
 
-// Page directory and page table constants
-#define PGSIZE         4096    // Bytes mapped by a page
-#define PGSHFT         12      // log2(PGSIZE)
-#define PTXSHFT        12      // Offset of PTX in a linear address
-#define PDXSHFT        22      // Offset of PDX in a linear address
-
-// Page table/directory entry flags
-#define PTE_P          0x001   // Present
-
-typedef uint32_t PTE;
-typedef uint32_t PDE;
-#define PDX(va)          (((uint32_t)(va) >> PDXSHFT) & 0x3ff)
-#define PTX(va)          (((uint32_t)(va) >> PTXSHFT) & 0x3ff)
-#define OFF(va)          ((uint32_t)(va) & 0xfff)
-#define ROUNDUP(a, sz)   ((((uintptr_t)a)+(sz)-1) & ~((sz)-1))
-#define ROUNDDOWN(a, sz) ((((uintptr_t)a)) & ~((sz)-1))
-#define PTE_ADDR(pte)    ((uint32_t)(pte) & ~0xfff)
-#define PGADDR(d, t, o)  ((uint32_t)((d) << PDXSHFT | (t) << PTXSHFT | (o)))
-
-
 extern size_t ramdisk_read(void *buf, size_t offset, size_t len);
 extern uint8_t ramdisk_start;
 extern int fs_open(const char* pathname,int flags,int mode);
@@ -46,25 +26,28 @@ static uintptr_t load_process(int fd , _AddressSpace* as,Elf_Phdr pro_header){
     void* phy_addr = new_page(1);
     _map(as,(void*)vaddr,phy_addr,PTE_P);
     fs_read(fd,phy_addr+offset,MIN(PGSIZE-offset,pro_header.p_filesz));
-    mapped_size = MIN(PGSIZE-offset,pro_header.p_filesz);
+    mapped_size += MIN(PGSIZE-offset,pro_header.p_filesz);
   }
+  vaddr = ROUNDUP(vaddr,PGSIZE);
   while(mapped_size<pro_header.p_filesz){
       uint32_t size = MIN(pro_header.p_filesz-mapped_size,PGSIZE);
       void* phy_addr = new_page(1);
-      _map(as,(void*)(vaddr+mapped_size),phy_addr,PTE_P);
+      _map(as,(void*)vaddr,phy_addr,PTE_P);
       fs_read(fd,phy_addr,size);
-      mapped_size += size;
+      mapped_size += PGSIZE;
+      vaddr += PGSIZE;
       if(size<PGSIZE){
         memset(phy_addr+size,0,PGSIZE-size);
-        mapped_size+=(PGSIZE-size);
       }
   }
   while(mapped_size<pro_header.p_memsz){
     uint32_t size = MIN(pro_header.p_memsz-mapped_size,PGSIZE);
     void* phy_addr = new_page(1);
-    _map(as,(void*)(vaddr+mapped_size),phy_addr,PTE_P);
+    _map(as,(void*)vaddr,phy_addr,PTE_P);
     memset(phy_addr,0,size);
-    mapped_size+=size;
+    vaddr += PGSIZE;
+    mapped_size+=PGSIZE;
+
   }
   return 0;
 }
@@ -76,8 +59,8 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   int fd = fs_open(filename,0,0);
   fs_lseek(fd,0,SEEK_SET);
   fs_read(fd,&elfheader,sizeof(Elf_Ehdr));
+  pcb->max_brk = elfheader.e_entry;
   uint32_t ph_num = elfheader.e_phnum;
-
   for(int i=0;i<ph_num;++i){
 
     fs_lseek(fd,elfheader.e_phoff+i*elfheader.e_phentsize,SEEK_SET);
@@ -86,6 +69,8 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
       continue;
     fs_lseek(fd,pro_header.p_offset,SEEK_SET);
     load_process(fd,&pcb->as,pro_header);
+    if(pro_header.p_vaddr+pro_header.p_memsz>pcb->max_brk)
+      pcb->max_brk = pro_header.p_vaddr+pro_header.p_memsz;
   }
 
   fs_close(fd);
