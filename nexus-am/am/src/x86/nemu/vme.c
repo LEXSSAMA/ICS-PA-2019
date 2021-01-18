@@ -4,13 +4,13 @@
 #include <klib.h>
 
 #define PG_ALIGN __attribute((aligned(PGSIZE)))
-
 static PDE kpdirs[NR_PDE] PG_ALIGN = {};
 //The Physical memory can be divided to (PMEM_SIZE + MMIO_SIZE) / PGSIZE pages
 static PTE kptabs[(PMEM_SIZE + MMIO_SIZE) / PGSIZE] PG_ALIGN = {};
 static void* (*pgalloc_usr)(size_t) = NULL;
 static void (*pgfree_usr)(void*) = NULL;
 static int vme_enable = 0;
+PDE kpdirs_addr = (PDE)kpdirs;
 
 static _Area segments[] = {      // Kernel memory mappings
   {.start = (void*)0,          .end = (void*)PMEM_SIZE},

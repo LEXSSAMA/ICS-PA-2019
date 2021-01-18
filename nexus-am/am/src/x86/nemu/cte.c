@@ -3,6 +3,7 @@
 #include <klib.h>
 
 static _Context* (*user_handler)(_Event, _Context*) = NULL;
+extern PDE kpdirs_addr;
 
 void __am_irq0();
 void __am_vecsys();
@@ -49,9 +50,9 @@ int _cte_init(_Context*(*handler)(_Event, _Context*)) {
   user_handler = handler;
   return 0;
 }
-
 _Context *_kcontext(_Area stack, void (*entry)(void *), void *arg) {
   _Context* kct = (_Context*)(stack.end-sizeof(_Context));
+  kct->as->ptr =(void*)kpdirs_addr;
   kct->eip = (uintptr_t) entry;
   kct->cs = 8;
   return kct;

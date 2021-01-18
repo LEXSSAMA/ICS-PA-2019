@@ -11,6 +11,7 @@ extern int fs_lseek(int fd,int offset,int whence);
 extern void naive_uload(PCB *pcb, const char *filename) ;
 extern int mm_brk(uintptr_t brk, intptr_t increment) ;
 
+//这里写与讲义上有些不同，不太理解讲义上max_brk的作用
 int sys_brk(intptr_t increment){
     // extern char _end;
     // static uint32_t program_break = (uint32_t)&_end;
