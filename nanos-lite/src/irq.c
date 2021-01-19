@@ -8,7 +8,7 @@ static _Context* do_event(_Event e, _Context* c) {
   switch (e.event) {
     case _EVENT_YIELD: result = schedule(c); break;
     case _EVENT_SYSCALL: result = do_syscall(c); break;
-    case _EVENT_IRQ_TIMER: _yield(); Log("Recevice time interrupt!\n"); break;
+    case _EVENT_IRQ_TIMER: result = schedule(c); break;
     default: panic("Unhandled event ID = %d", e.event);
   }
   return result;

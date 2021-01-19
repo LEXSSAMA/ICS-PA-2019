@@ -1,10 +1,11 @@
 #include "common.h"
 #include <amdev.h>
+#include "proc.h"
 
 #ifndef KEYDOWN_MASK
 #define KEYDOWN_MASK 0x8000
 #endif
-
+void switch_fg_pcb(int num);
 size_t serial_write(const void *buf, size_t offset, size_t len) {
   assert(buf!=NULL);
   const char* p =(const char*)buf;
@@ -12,7 +13,7 @@ size_t serial_write(const void *buf, size_t offset, size_t len) {
     _putc(p[i]);
   }
   return len;
-}
+} 
 
 #define NAME(key) \
   [_KEY_##key] = #key,
@@ -32,11 +33,26 @@ size_t events_read(void *buf, size_t offset, size_t len) {
     if(key&KEYDOWN_MASK){
       key ^= KEYDOWN_MASK;
       sprintf(buf,"kd %s\n",keyname[key]);
+      switch (key)
+      {
+      case _KEY_1:
+        switch_fg_pcb(1);
+        break;
+      case _KEY_2:
+        switch_fg_pcb(2);
+        break;
+      case _KEY_3:
+        switch_fg_pcb(3);
+        break;
+      default:
+        break;
+      }
     }
     else{
       sprintf(buf,"ku %s\n",keyname[key]);
     }
   }
+
   return strlen(buf);
 }
 
