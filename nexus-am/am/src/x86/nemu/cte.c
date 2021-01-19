@@ -3,19 +3,24 @@
 #include <klib.h>
 
 static _Context* (*user_handler)(_Event, _Context*) = NULL;
+extern PDE kpdirs_addr;
 
 void __am_irq0();
 void __am_vecsys();
 void __am_vectrap();
 void __am_vecnull();
+void __am_get_cur_as(_Context *c);
+void __am_switch(_Context *c);
 
 _Context* __am_irq_handle(_Context *c) {
+  __am_get_cur_as(c);
   _Context *next = c;
   if (user_handler) {
     _Event ev = {0};
     switch (c->irq) {
       case 0x81: ev.event = _EVENT_YIELD; break;
       case 0x80: ev.event = _EVENT_SYSCALL; break;
+      case 32 :  ev.event = _EVENT_IRQ_TIMER; break;
       default: ev.event = _EVENT_ERROR; break;
     }
 
@@ -24,6 +29,7 @@ _Context* __am_irq_handle(_Context *c) {
       next = c;
     }
   }
+  __am_switch(next);
   return next;
 }
 
@@ -45,9 +51,12 @@ int _cte_init(_Context*(*handler)(_Event, _Context*)) {
   user_handler = handler;
   return 0;
 }
-
 _Context *_kcontext(_Area stack, void (*entry)(void *), void *arg) {
-  return NULL;
+  _Context* kct = (_Context*)(stack.end-sizeof(_Context));
+  kct->as->ptr =(void*)kpdirs_addr;
+  kct->eip = (uintptr_t) entry;
+  kct->cs = 8;
+  return kct;
 }
 
 void _yield() {

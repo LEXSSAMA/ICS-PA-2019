@@ -39,6 +39,7 @@ uint32_t paddr_read(paddr_t addr, int len) {
 }
 
 void paddr_write(paddr_t addr, uint32_t data, int len) {
+
   if (map_inside(&pmem_map, addr)) {
     uint32_t offset = addr - pmem_map.low;
     memcpy(pmem + offset, &data, len);

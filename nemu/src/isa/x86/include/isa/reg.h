@@ -70,6 +70,10 @@ typedef struct {
     uint32_t idt_addr  ;
   }IDTR;
 
+  uint32_t cr[8];
+
+  bool INTR;
+
 } CPU_state;
 
 static inline int check_reg_index(int index) {
@@ -80,6 +84,7 @@ static inline int check_reg_index(int index) {
 #define reg_l(index) (cpu.gpr[check_reg_index(index)]._32)
 #define reg_w(index) (cpu.gpr[check_reg_index(index)]._16)
 #define reg_b(index) (cpu.gpr[check_reg_index(index) & 0x3]._8[index >> 2])
+#define reg_c(index) (cpu.cr[index])
 #define reg_f(flag)  (cpu.flags.flag)
 static inline const char* reg_name(int index, int width) {
   extern const char* regsl[];
