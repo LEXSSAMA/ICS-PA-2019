@@ -72,6 +72,8 @@ typedef struct {
 
   uint32_t cr[8];
 
+  bool INTR;
+
 } CPU_state;
 
 static inline int check_reg_index(int index) {

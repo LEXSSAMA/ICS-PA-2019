@@ -36,8 +36,9 @@ paddr_t page_translate(vaddr_t addr){
     //     addr,dir_base,dir_entry,dir_entry_context,ptab_base,ptab_entry,ptab_entry_context);
     //     printf("----------------------\n");
     // }
-    // Assert(ptab_entry_context&PTE_P,"The page table entry (%d) don't exit !\ndir_base == 0x%x\nvaddr == 0x%x\nphy_addr == 0x%x\nptab_base ==0x%x\nptab_entry==0x%x\ndir_entry_context == 0x%x\nptab_entry_context==0x%x\n"
-    Assert(ptab_entry_context&PTE_P,"The page table entry (%d) don't exit !\n",PTX(addr));
+    Assert(ptab_entry_context&PTE_P,"vaddr==0x%x\ndir_base==0x%x\ndir_entry==0x%x\ndir_entry_context==0x%x\nptab_base==0x%x\nptab_entry==0x%x\nptab_entry_context==0x%x\n",
+        addr,dir_base,dir_entry,dir_entry_context,ptab_base,ptab_entry,ptab_entry_context);
+    // Assert(ptab_entry_context&PTE_P,"The page table entry (%d) don't exit !\n",PTX(addr));
     return PTE_ADDR(ptab_entry_context) | OFF(addr);
 }
 

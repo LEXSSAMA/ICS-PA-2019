@@ -108,5 +108,6 @@ _Context *_ucontext(_AddressSpace *as, _Area ustack, _Area kstack, void *entry, 
   uct->as = as;
   uct->eip  = (uintptr_t) entry;
   uct->cs = 8;
+  uct->eflags = 0x200;
   return uct;
 }

@@ -25,10 +25,7 @@ make_EHelper(mov_cr2r) {
 
 make_EHelper(int) {
   extern void raise_intr(uint32_t NO, vaddr_t ret_addr);
-  rtl_push(&cpu.flags.val);
-  rtl_push(&cpu.cs);
-  rtl_push(&decinfo.seq_pc);
-  raise_intr(id_dest->val,cpu.IDTR.idt_addr);
+  raise_intr(id_dest->val,decinfo.seq_pc);
   print_asm("intd %s", id_dest->str);
   difftest_skip_dut(1, 2);
 }
