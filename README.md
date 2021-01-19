@@ -30,14 +30,25 @@
 		- 实现SYS_yield系统调用 
 		- 实现SYS_exit系统调用 
 		- 实现堆区管理	
-	- *PA3.3 <文件系统，批处理系统>*
+	- *PA3.3 <文件系统 && 批处理系统>*
 		- 实现完整的文件系统 (把串口抽象成文件,把设备输入抽象成文件,把VGA显存抽象成文件)
 		- 实现自由开关的DiffTest模式
 		- 实现快照
 		- 实现批处理系统
-- **PA4 - 虚实交错的魔法: 分时多任务	(正在进行)**
+- **PA4 - 虚实交错的魔法: 分时多任务	(已完成)**
+	- *PA4.1 <多道程序>*
+		- 实现上下文切换
+		- 实现多道程序系统
+	- *PA4.2 <虚实交错的魔法 && 超越容量的界限>*
+		- 在NEMU中实现分页机制 
+		- 在分页机制上运行用户进程
+		- 在分页机制上运行仙剑奇侠传
+		- 支持虚存管理的多道程序
+	- *PA4.3 <来自外部的声音 && 编写不朽的传奇>*
+		- 实现抢占多任务
+		- 实现前台程序及其切换功能
 
-
+<br>
 This project is the programming assignment of the class ICS(Introduction to Computer System) in Department of Computer Science and Technology, Nanjing University.
 
 For the guide of this programming assignment,
